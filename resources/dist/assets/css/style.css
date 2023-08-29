@@ -1,0 +1,14 @@
+.error-wrapper::-webkit-scrollbar {
+	width: 0;
+	height: 0;
+}
+
+.exception-trace-wrapper {
+	height: 180px;
+	overflow: hidden;
+}
+
+.exception-trace-wrapper.in {
+	height: auto;
+	overflow: auto;
+}

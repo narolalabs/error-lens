@@ -1,12 +1,12 @@
 <?php
 
-namespace VendorName\Skeleton\Commands;
+namespace Narolalabs\ErrorLens\Commands;
 
 use Illuminate\Console\Command;
 
-class SkeletonCommand extends Command
+class ErrorLensCommand extends Command
 {
-    public $signature = 'skeleton';
+    public $signature = 'error-lens';
 
     public $description = 'My command';
 
