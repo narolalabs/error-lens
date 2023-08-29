@@ -5,6 +5,13 @@
 
 ![image](https://github.com/narolalabs/error-lens/assets/143481636/30da69dc-c36e-4431-bf7e-008324945fe7)
 
+## Version Compatibility
+
+ PHP  	  | Laravel 
+:---------|:-----------
+  8.2     | 10.x
+  8.1     | 9.x
+
 ## Installation
 
 You can install the package via composer:
