@@ -3,7 +3,8 @@
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/narolalabs/error-lens.svg?style=flat-square)](https://packagist.org/packages/narolalabs/error-lens)
 [![Total Downloads](https://img.shields.io/packagist/dt/narolalabs/error-lens.svg?style=flat-square)](https://packagist.org/packages/narolalabs/error-lens)
 
-![image](https://github.com/narolalabs/error-lens/assets/143481636/30da69dc-c36e-4431-bf7e-008324945fe7)
+![ErrorLens](https://github.com/narolalabs/error-lens/assets/143481636/8ff8f140-6dc7-406e-b060-986914886cc1)
+
 
 ## Version Compatibility
 
