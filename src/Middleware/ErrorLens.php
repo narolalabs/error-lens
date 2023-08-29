@@ -21,7 +21,7 @@ class ErrorLens
         $response = $next($request);
         $exception = $response->exception;
 
-        if ( config('app.env') != 'production' ) {
+        if ( config('app.env') == 'production' && !config('app.debug') ) {
             if ( $exception ) {
                 try {
                     $error = [
