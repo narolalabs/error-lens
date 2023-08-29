@@ -1,19 +1,9 @@
 # See, Understand, and Handle Laravel Errors using ErrorLens
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/narolalabs/error-lens.svg?style=flat-square)](https://packagist.org/packages/narolalabs/error-lens)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/narolalabs/error-lens/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/narolalabs/error-lens/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/narolalabs/error-lens/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/narolalabs/error-lens/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/narolalabs/error-lens.svg?style=flat-square)](https://packagist.org/packages/narolalabs/error-lens)
 
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
-
-## Support us
-
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/error-lens.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/error-lens)
-
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
-
-We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
+![image](https://github.com/narolalabs/error-lens/assets/143481636/30da69dc-c36e-4431-bf7e-008324945fe7)
 
 ## Installation
 
@@ -30,18 +20,13 @@ php artisan vendor:publish --tag="error-lens-migrations"
 php artisan migrate
 ```
 
-You can publish the config file with:
+You can publish the assets file with:
 
 ```bash
-php artisan vendor:publish --tag="error-lens-config"
+php artisan vendor:publish --tag="error-lens-assets"
 ```
 
-This is the contents of the published config file:
-
-```php
-return [
-];
-```
+This is the contents of the published assets file in the `public/vendors/error-lens`.
 
 Optionally, you can publish the views using
 
@@ -49,18 +34,25 @@ Optionally, you can publish the views using
 php artisan vendor:publish --tag="error-lens-views"
 ```
 
-## Usage
+Register `ErrorLens` middleware in your `app/Http/Kernel.php`
 
 ```php
-$errorLens = new Narolalabs\ErrorLens();
-echo $errorLens->echoPhrase('Hello, Narolalabs!');
+protected $middleware = [
+    // ...
+    \Narolalabs\ErrorLens\Middleware\ErrorLens::class,
+];
 ```
 
-## Testing
+## Usage
 
-```bash
-composer test
-```
+Now that your project is live and debug mode is set to `false`, ErrorLens will capture any exceptions.
+
+To view all the errors, visit the `https://domain.com/error-lens`
+
+![image](https://github.com/narolalabs/error-lens/assets/143481636/30da69dc-c36e-4431-bf7e-008324945fe7)
+
+![image](https://github.com/narolalabs/error-lens/assets/143481636/8fe72323-4171-46df-bdf2-51332d815ed9)
+
 
 ## Changelog
 
