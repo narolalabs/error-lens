@@ -1,85 +1,138 @@
-<div class="offcanvas-header">
-    <div>
+<div class="offcanvas-header flex-column">
+    <div class="full-log-view">
         <h6>Error Message:</h6>
-        <h3 id="offcanvasRightLabel">{{ $errorLog->message }}</h3>
+        <h3 class="m-0" id="offcanvasRightLabel">{{ $errorLog->message }}</h3>
         <small>
             <span class="fw-bold">Request URL:</span>
             <span>{{ $errorLog->url }}</span>
         </small>
-        <small>
-            <a href="{{ route('error-lens.view', ['id' => $errorLog->id]) }}" target="_blank" title="Full View">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="#0d6efd" x="0px" y="0px" width="20" height="20" viewBox="0 0 32 32">
-                    <path d="M 18 5 L 18 7 L 23.5625 7 L 11.28125 19.28125 L 12.71875 20.71875 L 25 8.4375 L 25 14 L 27 14 L 27 5 Z M 5 9 L 5 27 L 23 27 L 23 14 L 21 16 L 21 25 L 7 25 L 7 11 L 16 11 L 18 9 Z"></path>
-                </svg>
+
+        <div class="small">
+            <a href="{{ route('error-lens.view', ['id' => $errorLog->id]) }}" target="_blank" title="Full View" class="text-decoration-none">
+                <span>View in full screen</span>
             </a>
-        </small>
+        </div>
     </div>
-    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
 </div>
 <div class="offcanvas-body">
     <div class="row">
         <div class="col-lg-8">
+            @if($errorLog->error)
+                <div class="my-4">
+                    <div class="card-body error-panel">
+                        <h3>Error:</h3>
+                        <ul class="list-group">
+                            @foreach( $errorLog->error as $errors )
+                                @foreach( $errors as $key => $error )
+                                    <li class="list-group-item d-flex align-items-start">
+                                        <div class="d-flex flex-column">
+                                            <div class="fw-bold">{{ ucwords($key) . ':' }}</div>
+                                            <span class="">{{ is_array($error) ? json_encode($error) : $error }}</span>
+                                        </div>
+                                    </li>
+                                @endforeach
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            @endif
+            
             <div class="card mb-3">
                 <div class="card-body">
-                    <h6>Error:</h6>
-                    <pre><code class="language-json overflow-auto error-wrapper" style="min-height: 200px">{{ json_encode($errorLog->error, JSON_PRETTY_PRINT) }}</code></pre>
+                    <h3>Request Data:</h3>
+                    <div class="card">
+                        <div class="card-body">
+                            @if($errorLog->request_data)
+                                <pre><code class="language-json overflow-auto error-wrapper">{{ json_encode($errorLog->request_data, JSON_PRETTY_PRINT) }}</code></pre>
+                            @else
+                                <h6 class="m-0">N/A</h6>
+                            @endif
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            <div class="card mb-5">
-                <div class="card-body exception-trace-wrapper">
-                    <h6>Exception Trace</h6>
-                    <pre><code class="language-json overflow-auto error-wrapper">{{ json_encode($errorLog->trace, JSON_PRETTY_PRINT) }}</code></pre>
-                </div>
-                
-                <a href="javascript: void(0);" class="text-primary text-center text-decoration-none mb-3 view-more">View more</a>
             </div>
         </div>
 
         <div class="col-lg-4">
-            <ul class="list-group">
-                <li class="list-group-item d-flex align-items-start">
-                    <div class="d-flex flex-column">
-                        <div class="fw-bold">Occure At</div>
-                        <span>{{ $errorLog->created_at->format('dS F, Y H:s') }}</span>
-                    </div>
-                </li>
+            <div class="accordion" id="rightside-panel">
+                <div class="accordion-item custom_accordion-item">
+                    <h2 class="accordion-header" id="heading-incident-report">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#incident-report" aria-expanded="true" aria-controls="incident-report">
+                            Incident Reported
+                        </button>
+                    </h2>
+                    <div id="incident-report" class="accordion-collapse collapse show" aria-labelledby="heading-incident-report" data-bs-parent="#rightside-panel">
+                        <div class="accordion-body p-0">
+                            <div class="card-body">
+                                <div class="mb-3 input_custom">
+                                    <label class="fw-bold">Occured At</label>
+                                    <span class="form-control">{{ date('dS F, Y H:i', strtotime($errorLog->created_at)) }}</span>
+                                </div>
 
-                <li class="list-group-item d-flex align-items-start">
-                    <div class="d-flex flex-column">
-                        <div class="fw-bold">User IP Address</div>
-                        <span>{{ $errorLog->ip_address }}</span>
-                    </div>
-                </li>
+                                <div class="mb-3 input_custom">
+                                    <label class="fw-bold">User IP Address</label>
+                                    <span class="form-control">{{ $errorLog->ip_address }}</span>
+                                </div>
 
-                <li class="list-group-item d-flex align-items-start">
-                    <div class="d-flex flex-column">
-                        <div class="fw-bold">User Browser</div>
-                        <span>{{ $errorLog->browser }}</span>
-                    </div>
-                </li>
+                                <div class="mb-3 input_custom">
+                                    <label class="fw-bold">User Browser</label>
+                                    <span class="form-control">{{ $errorLog->browser }}</span>
+                                </div>
 
-                <li class="list-group-item d-flex align-items-start">
-                    <div class="d-flex flex-column">
-                        <div class="fw-bold">Previous URL</div>
-                        <span>{{ $errorLog->previous_url }}</span>
-                    </div>
-                </li>
+                                <div class="mb-3 input_custom">
+                                    <label class="fw-bold">Previous URL</label>
+                                    <span class="form-control">{{ $errorLog->previous_url }}</span>
+                                </div>
 
-                <li class="list-group-item d-flex align-items-start">
-                    <div class="d-flex flex-column">
-                        <div class="fw-bold">Was user logged-in?</div>
-                        <div>
-                            @if($errorLog->email)
-                                <span class="badge bg-success">Yes</span>
-                                <a href="mailto:{{ $errorLog->email }}">{{ $errorLog->email }}</a>
-                            @else
-                                <span class="badge bg-dark">No</span>
-                            @endif
+                                <div class="mb-3 input_custom">
+                                    <label class="fw-bold">Was user logged-in?</label>
+                                    <div class="form-control">
+                                        @if($errorLog->email)
+                                            <span class="badge bg-success">Yes</span>
+                                            <a href="mailto:{{ $errorLog->email }}">{{ $errorLog->email }}</a>
+                                        @else
+                                            <span class="badge bg-dark">No</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </li>
-            </ul>
+                </div>
+
+                <div class="accordion-item custom_accordion-item">
+                    <h2 class="accordion-header" id="heading-request-headers">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#request-headers" aria-expanded="false" aria-controls="request-headers">
+                            Request Headers
+                        </button>
+                    </h2>
+                    <div id="request-headers" class="accordion-collapse collapse" aria-labelledby="heading-request-headers" data-bs-parent="#rightside-panel">
+                        <div class="accordion-body p-0">
+                            <div class="card-body">
+                                @if($errorLog->headers)
+                                    @foreach( $errorLog->headers as $key => $header )
+                                        <div class="mb-3 input_custom">
+                                            <label class="fw-bold">{{ $key }}</label>
+                                            <div class="form-control">
+                                                @foreach( $header as $value )
+                                                    <span class="content word-break-all {{ strlen($value) > 130 ? 'ellipsis-content line-clamp-3' : '' }}">{{ $value }}</span>
+                                                    @if(strlen($value) > 130)
+                                                        <small class="sidebar-view-more text-center text-primary cursor-pointer">View more</small>
+                                                    @endif
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                @else
+                                    <div class="input_custom">
+                                        <div class="fw-bold">N/A</div>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>            
         </div>
     </div>
 </div>

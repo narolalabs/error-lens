@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('error_logs', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('url', 191);
-            $table->json('query_string')->nullable();
+            $table->json('request_data')->nullable();
+            $table->json('headers')->nullable();
             $table->text('message');
             $table->json('error')->nullable();
             $table->json('trace')->nullable();

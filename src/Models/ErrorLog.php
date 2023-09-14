@@ -31,7 +31,7 @@ class ErrorLog extends Model
      * @var array<string>
      */
     protected $fillable = [
-        'url', 'query_string', 'message', 'error', 'trace', 'email', 'ip_address', 'browser', 'previous_url',
+        'url', 'request_data', 'headers', 'message', 'error', 'trace', 'email', 'ip_address', 'browser', 'previous_url',
     ];
 
     /**
@@ -40,7 +40,8 @@ class ErrorLog extends Model
      * @var array
      */
     protected $casts = [
-        'query_string' => 'array',
+        'request_data' => 'array',
+        'headers' => 'array',
         'trace' => 'array',
         'error' => 'array',
     ];
@@ -51,7 +52,8 @@ class ErrorLog extends Model
      * @var array
      */
     protected $attributes = [
-        'query_string' => '[]',
+        'request_data' => '[]',
+        'headers' => '[]',
         'trace' => '[]',
         'error' => '[]',
     ];

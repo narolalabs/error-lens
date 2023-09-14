@@ -20,7 +20,6 @@ class ErrorLens
     {
         $response = $next($request);
         $exception = $response->exception;
-
         if ( config('app.env') == 'production' && !config('app.debug') ) {
             if ( $exception ) {
                 try {
@@ -30,36 +29,40 @@ class ErrorLens
                             'file' => $exception->getFile(),
                             'line' => $exception->getLine(),
                             'code' => $exception->getCode(),
-                            'previous' => $exception->getPrevious(),
+                            // 'previous' => $exception->getPrevious(),
                         ],
                     ];
-                    
-                    $errorTraces = collect($exception->getTrace())->filter(function ($files) {
+
+                    $error = collect(array_merge($exception->getTrace(), $error))->filter(function ($files) {
                         if ( isset($files['file']) && !Str::contains($files['file'], 'vendor') &&
                             !Str::contains($files['file'], 'Middleware\ErrorLens.php') &&
                             !Str::contains($files['file'], 'public\index.php') &&
+                            !Str::contains($files['file'], 'server.php') &&
                             !Str::contains($files['file'], 'index.php')
                         ) {
                             return $files;
                         }
                     })->values()->all();
 
-                    $error = array_merge($error, $errorTraces);
-
                     $browser = Agent::browser();
+
+                    $message = !empty($exception->getMessage()) ?
+                        $exception->getMessage()
+                        : $exception->getStatusCode() . ' | Not found - ' . $request->fullUrl();
+
                     ErrorLog::create([
                         'url' => $request->url(),
-                        'query_string' => $request->query(),
-                        'message' => $exception->getMessage(),
+                        'request_data' => $request->all(),
+                        'headers' => request()->header(),
+                        'message' => $message,
                         'error' => $error,
                         'trace' => $exception->getTrace(),
                         'email' => $request->user() ? $request->user()->email : null,
                         'ip_address' => $request->ip(),
                         'previous_url' => url()->previous(),
-                        'browser' => "$browser - "  . Agent::version($browser),
+                        'browser' => "$browser - v"  . Agent::version($browser),
                     ]);
                 } catch (\Exception $e) {
-                    dd($e->getMessage());
                 }
             }
         }

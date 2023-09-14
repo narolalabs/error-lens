@@ -1,78 +1,141 @@
 @extends('error-lens::layouts.app')
 
 @section('content')
-    <div class="row">
-        <div class="col-md-9">
-            <div class="my-4 d-flex flex-column full-log-view">
+    <div class="row" id="full-view">
+        <div class="col-sm-12">
+            <div id="sticky-wrap" class="my-4 d-flex flex-column full-log-view">
                 <h6>Error Message:</h6>
-                <h1>{{ $errorLog->message }}</h1>
+                <h2>{{ $errorLog->message }}</h2>
+                <small>
+                    <span class="fw-bold">Request URL:</span>
+                    <span>{{ $errorLog->url }}</span>
+                </small>
+            </div>
+        </div>
+        <div class="col-md-9">
+
+            <div class="card-body error-panel">
+                <h3>Error:</h3>
+                @foreach( $errorLog->error as $errors )
+                    <ul class="list-group mb-3">
+                        @foreach( $errors as $key => $error )
+                            <li class="list-group-item d-flex align-items-start">
+                                <div class="d-flex flex-column">
+                                    <div class="fw-bold">{{ ucwords($key) . ':' }}</div>
+                                    <span>{{ is_array($error) ? json_encode($error) : $error }}</span>
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endforeach
             </div>
 
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h6>Errors</h6>
-                    <pre><code class="language-json overflow-auto error-wrapper" style="min-height: 200px">{{ json_encode($errorLog->error, JSON_PRETTY_PRINT) }}</code></pre>
+            <div class="my-4">
+                <div class="card-body error-panel">
+                    <h3>Request Data:</h3>
+                    
+                    @if($errorLog->request_data)
+                        <pre><code class="language-json overflow-auto error-wrapper">{{ json_encode($errorLog->request_data, JSON_PRETTY_PRINT) }}</code></pre>
+                    @else
+                        <h6 class="m-0">N/A</h6>
+                    @endif
                 </div>
-            </div>
-
-            <div class="card mb-5">
-                <div class="card-body exception-trace-wrapper">
-                    <h6>Exception Trace</h6>
-                    <pre><code class="language-json overflow-auto error-wrapper">{{ json_encode($errorLog->trace, JSON_PRETTY_PRINT) }}</code></pre>
-                </div>
-
-                <a href="javascript: void(0);" class="text-primary text-center text-decoration-none mb-3 view-more">View more</a>
             </div>
         </div>
 
         <div class="col-md-3">
-            <div class="my-4">
-                <ul class="list-group">
-                    <li class="list-group-item d-flex align-items-start">
-                        <div class="d-flex flex-column">
-                            <div class="fw-bold">Occure At</div>
-                            <span>{{ $errorLog->created_at->format('dS F, Y H:s') }}</span>
-                        </div>
-                    </li>
+            <div class="mb-4 accordion" id="rightside-panel">
+                <div class="accordion-item custom_accordion-item">
+                    <h2 class="accordion-header" id="headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#incident-report" aria-expanded="true" aria-controls="incident-report">
+                            Incident Reported
+                        </button>
+                    </h2>
+                    <div id="incident-report" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#rightside-panel">
+                        <div class="accordion-body p-0">
+                            <div class="card-body">
+                                <div class="mb-3 input_custom">
+                                    <label class="fw-bold">Occured At</label>
+                                    <span class="form-control">{{ date('dS F, Y H:i', strtotime($errorLog->created_at)) }}</span>
+                                </div>
 
-                    <li class="list-group-item d-flex align-items-start">
-                        <div class="d-flex flex-column">
-                            <div class="fw-bold">User IP Address</div>
-                            <span>{{ $errorLog->ip_address }}</span>
-                        </div>
-                    </li>
+                                <div class="mb-3 input_custom">
+                                    <label class="fw-bold">User IP Address</label>
+                                    <span class="form-control">{{ $errorLog->ip_address }}</span>
+                                </div>
 
-                    <li class="list-group-item d-flex align-items-start">
-                        <div class="d-flex flex-column">
-                            <div class="fw-bold">User Browser</div>
-                            <span>{{ $errorLog->browser }}</span>
-                        </div>
-                    </li>
+                                <div class="mb-3 input_custom">
+                                    <label class="fw-bold">User Browser</label>
+                                    <span class="form-control">{{ $errorLog->browser }}</span>
+                                </div>
 
-                    <li class="list-group-item d-flex align-items-start">
-                        <div class="d-flex flex-column">
-                            <div class="fw-bold">Previous URL</div>
-                            <span>{{ $errorLog->previous_url }}</span>
-                        </div>
-                    </li>
+                                <div class="mb-3 input_custom">
+                                    <label class="fw-bold">Previous URL</label>
+                                    <span class="form-control">{{ $errorLog->previous_url }}</span>
+                                </div>
 
-                    <li class="list-group-item d-flex align-items-start">
-                        <div class="d-flex flex-column">
-                            <div class="fw-bold">Was user logged-in?</div>
-                            <div>
-                                @if($errorLog->email)
-                                    <span class="badge bg-success">Yes</span>
-                                    <a href="mailto:{{ $errorLog->email }}">{{ $errorLog->email }}</a>
+                                <div class="mb-3 input_custom">
+                                    <label class="fw-bold">Was user logged-in?</label>
+                                    <div class="form-control">
+                                        @if($errorLog->email)
+                                            <span class="badge bg-success">Yes</span>
+                                            <a href="mailto:{{ $errorLog->email }}">{{ $errorLog->email }}</a>
+                                        @else
+                                            <span class="badge bg-dark">No</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item custom_accordion-item">
+                    <h2 class="accordion-header" id="heading-request-headers">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#request-headers" aria-expanded="false" aria-controls="request-headers">
+                            Request Headers
+                        </button>
+                    </h2>
+                    <div id="request-headers" class="accordion-collapse collapse" aria-labelledby="heading-request-headers" data-bs-parent="#rightside-panel">
+                        <div class="accordion-body p-0">
+                            <div class="card-body">
+                                @if($errorLog->headers)
+                                    @foreach( $errorLog->headers as $key => $header )
+                                        <div class="mb-3 input_custom">
+                                            <label class="fw-bold">{{ $key }}</label>
+                                            <div class="form-control">
+                                                @foreach( $header as $value )
+                                                    <span class="content word-break-all {{ strlen($value) > 130 ? 'ellipsis-content line-clamp-3' : '' }}">{{ $value }}</span>
+                                                    @if(strlen($value) > 130)
+                                                        <small class="sidebar-view-more text-center text-primary cursor-pointer">View more</small>
+                                                    @endif
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 @else
-                                    <span class="badge bg-dark">No</span>
+                                    <div class="input_custom">
+                                        <div class="fw-bold">N/A</div>
+                                    </div>
                                 @endif
                             </div>
                         </div>
-                    </li>
-                </ul>
-            </div>
+                    </div>
+                </div>
 
-            <x-error-lens::site-info />
+                <div class="accordion-item custom_accordion-item">
+                    <h2 class="accordion-header" id="heading-website-info">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#website-info" aria-expanded="false" aria-controls="website-info">
+                            Website Information
+                        </button>
+                    </h2>
+                    <div id="website-info" class="accordion-collapse collapse" aria-labelledby="heading-website-info" data-bs-parent="#rightside-panel">
+                        <div class="accordion-body p-0">
+                            <x-error-lens::site-info :showHeader="false" />
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

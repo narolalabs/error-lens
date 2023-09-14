@@ -10,98 +10,65 @@ use Illuminate\Routing\Controller;
 
 class ErrorLogController extends Controller
 {
-    /**
-     * Allow queryString value
-     * 
-     * @var array
-     */
     protected static array $queryString = [
         'today', 'yesterday', 'last-month', 'current-year',
     ];
 
-    /**
-     * Default filter
-     * 
-     * @var string
-     */
     protected static string $defaultFilter = 'today';
 
-    /**
-     * Per page record length
-     * 
-     * @var int
-     */
     protected static int $perPageRecordLenght = 20;
 
-    /**
-     * Get default filter value
-     * 
-     * @return string
-     */
     protected function getDefaultFilter(): string
     {
         return static::$defaultFilter;
     }
 
-    /**
-     * Get per page pagination record length
-     * 
-     * @return int
-     */
     protected function getPerPageRecordLenght(): int
     {
         return static::$perPageRecordLenght;
     }
 
-    /**
-     * Get title of the filter
-     * 
-     * @param  string $queryString
-     * @return string
-     */
-    protected function getTitle($queryString): string
+    protected function getTitle($queryString)
     {
-        return match ($queryString) {
-            'today' => "Today's errors",
-            'yesterday' => "Yesterday's errors",
-            'last-month' => 'Last month errors',
-            'current-year' => 'Current year errors',
-        };
+        $title = '';
+        switch ($queryString) {
+            case 'today': 
+                $title = "Today's errors";
+                break;
+            case 'yesterday':
+                $title = "Yesterday's errors";
+                break;
+            case 'last-month':
+                $title = 'Last month errors';
+                break;
+            case 'current-year':
+                $title = 'Current year errors';
+                break;
+        }
+        return $title;
     }
 
-    /**
-     * Get filter value based on the string
-     * 
-     * @param  string $view
-     * @return string
-     */
     protected function getFilterValue($view): string
     {
-        return match ($view) {
-            'today' => date('Y-m-d'),
-            'yesterday' => date('Y-m-d', strtotime('yesterday')),
-            'last-month' => date('Y-m', strtotime('last month')),
-            'current-year' => date('Y'),
-        };
+        $date = date('Y-m-d');
+        switch ($view) {
+            case 'today': 
+                $date = date('Y-m-d');
+                break;
+            case 'yesterday':
+                $date = date('Y-m-d', strtotime('yesterday'));
+                break;
+            case 'last-month':
+                $date = date('Y-m', strtotime('last month'));
+                break;
+            case 'current-year':
+                $date = date('Y');
+                break;
+        }
+        return $date;
     }
 
-    /**
-     * For listing errors, it will redirect to Dashboard route.
-     * 
-     * @return RedirectResponse
-     */
-    public function index(): RedirectResponse
-    {
-        return redirect()->route('error-lens.dashboard');
-    }
-
-    /**
-     * Display dashboard view.
-     * 
-     * @param  Request $request
-     * @return mixed
-     */
-    public function dashboard( Request $request ): mixed
+    public function index( Request $request )
     {
         $activeError = current(static::$queryString);
 
@@ -129,14 +96,7 @@ class ErrorLogController extends Controller
         return view('error-lens::index', $data);
     }
 
-    /**
-     * View error.
-     * 
-     * @param  Request $request
-     * @param  string  $id
-     * @return mixed
-     */
-    public function view( Request $request, string $id ): mixed
+    public function view( Request $request, string $id )
     {
         $data['errorLog'] = ErrorLog::findOrFail($id);
 
@@ -153,12 +113,6 @@ class ErrorLogController extends Controller
         return view('error-lens::view', $data);
     }
 
-    /**
-     * Clear error logs.
-     * 
-     * @param  Request $request
-     * @return RedirectResponse
-     */
     public function clear( Request $request ): RedirectResponse
     {
         try {

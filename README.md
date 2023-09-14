@@ -8,10 +8,9 @@
 
 ## Version Compatibility
 
- PHP  	  | Laravel 
-:---------|:-----------
-  8.2     | 10.x
-  8.1     | 9.x
+ PHP      | 7.1, 7.2, 7.3, 7.4, 8.0  |
+:---------|--------------------------|
+Laravel   | 8.x, 9.x                 |
 
 ## Installation
 
@@ -25,6 +24,10 @@ You can publish and run the migrations with:
 
 ```bash
 php artisan vendor:publish --tag="error-lens-migrations"
+```
+
+Run migration with:
+```bash
 php artisan migrate
 ```
 
@@ -53,9 +56,15 @@ protected $middleware = [
 
 ## Usage
 
-Now that your project is live and debug mode is set to `false`, ErrorLens will capture any exceptions.
+Make sure that you have set **PRODUCTION** from `config/app.php` and set `APP_DEBUG` to `false`.
 
-To view all the errors, visit the `https://domain.com/error-lens`
+After changing the configuration, make sure you clear the config.
+
+```bash
+php artisan config:clear
+```
+
+To view all the error logs, visit the `https://domain.com/error-lens`
 
 ![image](https://github.com/narolalabs/error-lens/assets/143481636/30da69dc-c36e-4431-bf7e-008324945fe7)
 
