@@ -66,10 +66,11 @@ php artisan config:clear
 
 To view all the error logs, visit the `https://domain.com/error-lens`
 
-![image](https://github.com/narolalabs/error-lens/assets/143481636/30da69dc-c36e-4431-bf7e-008324945fe7)
+![Error Lens - Dashbaord](https://github.com/narolalabs/error-lens/assets/143481636/5f3a7b5b-5f92-4be2-b695-b62620a13033)
 
-![image](https://github.com/narolalabs/error-lens/assets/143481636/8fe72323-4171-46df-bdf2-51332d815ed9)
+![Error Lens - Error modal view](https://github.com/narolalabs/error-lens/assets/143481636/b301a47b-1756-4f32-9250-1d577b8110b0)
 
+![Error Lens - Full page error view](https://github.com/narolalabs/error-lens/assets/143481636/3080d773-ea99-421c-b05d-11bd23349ad6)
 
 ## Changelog
 
