@@ -37,18 +37,14 @@
                 </div>
             @endif
             
-            <div class="card mb-3">
-                <div class="card-body">
+            <div class="my-4">
+                <div class="card-body error-panel">
                     <h3>Request Data:</h3>
-                    <div class="card">
-                        <div class="card-body">
-                            @if($errorLog->request_data)
-                                <pre><code class="language-json overflow-auto error-wrapper">{{ json_encode($errorLog->request_data, JSON_PRETTY_PRINT) }}</code></pre>
-                            @else
-                                <h6 class="m-0">N/A</h6>
-                            @endif
-                        </div>
-                    </div>
+                    @if($errorLog->request_data)
+                        <pre><code class="language-json overflow-auto error-wrapper">{{ json_encode($errorLog->request_data, JSON_PRETTY_PRINT) }}</code></pre>
+                    @else
+                        <h6 class="m-0">N/A</h6>
+                    @endif
                 </div>
             </div>
         </div>

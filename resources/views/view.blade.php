@@ -13,22 +13,23 @@
             </div>
         </div>
         <div class="col-md-9">
-
-            <div class="card-body error-panel">
-                <h3>Error:</h3>
-                @foreach( $errorLog->error as $errors )
-                    <ul class="list-group mb-3">
-                        @foreach( $errors as $key => $error )
-                            <li class="list-group-item d-flex align-items-start">
-                                <div class="d-flex flex-column">
-                                    <div class="fw-bold">{{ ucwords($key) . ':' }}</div>
-                                    <span>{{ is_array($error) ? json_encode($error) : $error }}</span>
-                                </div>
-                            </li>
-                        @endforeach
-                    </ul>
-                @endforeach
-            </div>
+            @if($errorLog->error)
+                <div class="card-body error-panel">
+                    <h3>Error:</h3>
+                    @foreach( $errorLog->error as $errors )
+                        <ul class="list-group mb-3">
+                            @foreach( $errors as $key => $error )
+                                <li class="list-group-item d-flex align-items-start">
+                                    <div class="d-flex flex-column">
+                                        <div class="fw-bold">{{ ucwords($key) . ':' }}</div>
+                                        <span>{{ is_array($error) ? json_encode($error) : $error }}</span>
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endforeach
+                </div>
+            @endif
 
             <div class="my-4">
                 <div class="card-body error-panel">
