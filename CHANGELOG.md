@@ -1,6 +1,6 @@
 # Release Notes
 
-## [v1.0](https://github.com/narolalabs/error-lens/compare/v1.x-beta...v1.x) - 2023-09-18
+## v1.0 - 2023-09-18
 
 ### Added
 
