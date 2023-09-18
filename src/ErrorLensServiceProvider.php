@@ -28,6 +28,6 @@ class ErrorLensServiceProvider extends PackageServiceProvider
     {
         parent::boot();
 
-        Paginator::useBootstrapFive();
+        Paginator::useBootstrap();
     }
 }

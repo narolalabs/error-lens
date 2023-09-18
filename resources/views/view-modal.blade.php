@@ -21,8 +21,8 @@
                 <div class="my-4">
                     <div class="card-body error-panel">
                         <h3>Error:</h3>
-                        <ul class="list-group">
-                            @foreach( $errorLog->error as $errors )
+                        @foreach( $errorLog->error as $errors )
+                            <ul class="list-group mb-3">
                                 @foreach( $errors as $key => $error )
                                     <li class="list-group-item d-flex align-items-start">
                                         <div class="d-flex flex-column">
@@ -31,8 +31,8 @@
                                         </div>
                                     </li>
                                 @endforeach
-                            @endforeach
-                        </ul>
+                            </ul>
+                        @endforeach
                     </div>
                 </div>
             @endif
