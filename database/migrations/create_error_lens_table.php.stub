@@ -25,6 +25,13 @@ return new class extends Migration
             $table->string('previous_url', 191)->nullable();
             $table->timestamps();
         });
+
+        Schema::create('error_log_configs', function (Blueprint $table) {
+            $table->id();
+            $table->string('key', 191)->unique();
+            $table->text('value');
+            $table->timestamps();
+        });
     }
 
     /**

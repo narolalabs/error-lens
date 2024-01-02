@@ -45,6 +45,12 @@ Optionally, you can publish the views using
 php artisan vendor:publish --tag="error-lens-views"
 ```
 
+You can also publish the configuration to set it according to your preferences. (optional)
+
+```bash
+php artisan vendor:publish --tag="error-lens-config"
+```
+
 Register `ErrorLens` middleware in your `app/Http/Kernel.php`
 
 ```php

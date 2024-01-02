@@ -17,7 +17,7 @@ class ErrorLensServiceProvider extends PackageServiceProvider
          */
         $package
             ->name('error-lens')
-            // ->hasConfigFile()
+            ->hasConfigFile('error-lens')
             ->hasViews('error-lens')
             ->hasAssets()
             ->hasRoute('web')
