@@ -54,7 +54,7 @@ class ErrorLens
                             'message' => $exception->getMessage(),
                             'file' => $exception->getFile(),
                             'line' => $exception->getLine(),
-                            'code' => $exception->getCode(),
+                            'code' => ($exception->getCode() !== 0) ? $exception->getCode() : 500,
                             // 'previous' => $exception->getPrevious(),
                         ],
                     ];
