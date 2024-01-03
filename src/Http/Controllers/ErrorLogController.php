@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Narolalabs\ErrorLens\Models\ErrorLog;
 use Illuminate\Routing\Controller;
+use Narolalabs\ErrorLens\Http\Requests\SecurityConfigRequest;
+use Narolalabs\ErrorLens\Models\ErrorLogConfig;
 
 class ErrorLogController extends Controller
 {
@@ -123,5 +125,28 @@ class ErrorLogController extends Controller
         }
 
         return redirect()->back();
+    }
+
+    public function config(Request $request)
+    {
+        $configurations = ErrorLogConfig::whereIn('key', ['security.storeRequestedData', 'security.confidentialFieldNames'])->pluck('value', 'key');
+        return view('error-lens::config.config', compact('configurations'));
+    }
+
+    public function config_store(SecurityConfigRequest $request)
+    {
+        $data = collect($request->all())->only(['storeRequestedData', 'confidentialFieldNames']);
+        $data = $data->map(function ($value, $key) use ($request) {
+            return [
+                'key' => $request->type . '.' . $key,
+                'value' => ($key == 'confidentialFieldNames') ? implode(',', array_filter(array_map('trim', explode(',', $value)))) : $value,
+            ];
+        })->toArray();
+        
+        $update = ErrorLogConfig::upsert($data, ['key']);
+        if ($update) {
+            return redirect()->back()->withSuccess('Configuration has been updated successfully.');
+        }
+        return redirect()->back()->withError('There seems to be an issue! Please try again later.');
     }
 }

@@ -1,9 +1,9 @@
 # Release Notes
 
-## [v1.x-beta](https://github.com/narolalabs/error-lens/compare/main...v1.x-beta) - 2023-09-14
+## v1.0 - 2023-09-18
 
 ### Added
 
-- Added support for Laravel ^8.x and PHP ^7.3 versions by @narolalebs
-- Improve display error logs that help to find out actual errors by @narolalebs
-- Improve UI/UX by @narolalebs
+- Added support for Laravel ^8.x and PHP ^7.3 versions by @narolalabs
+- Improve display error logs that help to find out actual errors by @narolalabs
+- Improve UI/UX by @narolalabs

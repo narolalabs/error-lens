@@ -7,7 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Jenssegers\Agent\Facades\Agent;
 use Narolalabs\ErrorLens\Models\ErrorLog;
+use Narolalabs\ErrorLens\Models\ErrorLogConfig;
 use Symfony\Component\HttpFoundation\Response;
+use Cache;
 
 class ErrorLens
 {
@@ -17,18 +19,42 @@ class ErrorLens
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
-    {
+    {   
+        // Store configuration in cache
+        if (Cache::get('error-lens')) {
+            $errorLogConfigs = collect($this->flattenArray(Cache::get('error-lens')));
+        }
+        else {
+            // If configuration data is not in the cache, then pick from database
+            $errorLogConfigs = ErrorLogConfig::pluck('value', 'key');
+            Cache::put('error-lens', $errorLogConfigs->toArray(), now()->addMinutes(10));
+        }
+        
+        // Modify the key name of the config
+        $errorLogConfigs = $errorLogConfigs->mapWithKeys(function ($value, $key) {
+            return ['error-lens.' . $key => $value];
+        })->toArray();
+
+        // Update the configuration value
+        config($errorLogConfigs);
+
         $response = $next($request);
         $exception = $response->exception;
-        if ( config('app.env') == 'production' && !config('app.debug') ) {
-            if ( $exception ) {
+        if (config('app.env') == 'production' && !config('app.debug')) {
+            if ($exception) {
                 try {
+                    // Replace the confidential string with stars (*)
+                    $confidetialFields = explode(',', config('error-lens.security.confidentialFieldNames'));
+                    $requestedData = collect($request->all())->map(function ($value, $key) use ($confidetialFields) {
+                        return in_array($key, $confidetialFields) ? Str::padRight('', strlen($value), '*') : $value;
+                    });
+
                     $error = [
                         [
                             'message' => $exception->getMessage(),
                             'file' => $exception->getFile(),
                             'line' => $exception->getLine(),
-                            'code' => $exception->getCode(),
+                            'code' => ($exception->getCode() !== 0) ? $exception->getCode() : 500,
                             // 'previous' => $exception->getPrevious(),
                         ],
                     ];
@@ -52,7 +78,7 @@ class ErrorLens
 
                     ErrorLog::create([
                         'url' => $request->url(),
-                        'request_data' => $request->all(),
+                        'request_data' => config('error-lens.security.storeRequestedData') == '1' ? $requestedData->all() : null,
                         'headers' => request()->header(),
                         'message' => $message,
                         'error' => $error,
@@ -69,4 +95,29 @@ class ErrorLens
 
         return $response;
     }
+
+    /**
+     * Make array to dot flatten
+     *
+     * @param [type] $array
+     * @param string $prefix
+     * @return void
+     */
+    private function flattenArray(array $array, string $prefix = '')
+    {
+        $result = [];
+
+        foreach ($array as $key => $value) {
+            $newKey = $prefix . $key;
+
+            if (is_array($value)) {
+                $result = array_merge($result, $this->flattenArray($value, $newKey . '.'));
+            } else {
+                $result[$newKey] = $value;
+            }
+        }
+
+        return $result;
+    }
+
 }
