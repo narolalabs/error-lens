@@ -33,14 +33,15 @@ class SecurityConfigRequest extends FormRequest
     public function rules()
     {
         return [
-            'confidentialFieldNames' => 'required_if:storeRequestedData,==,1'
+            'confidentialFieldNames' => 'required_if:storeRequestedData,==,1|array'
         ];
     }
 
     public function messages()
     {
         return [
-            'confidentialFieldNames.required_if' => 'The confidential field names field is required when store requested data is checked.'
+            'confidentialFieldNames.required_if' => 'The confidential field names field is required when store requested data is checked.',
+            'confidentialFieldNames.array' => 'The confidential field names must be type array.'
         ];
     }
 

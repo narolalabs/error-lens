@@ -1,5 +1,9 @@
 @extends('error-lens::layouts.app')
 
+@section('style')
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+@endsection
+
 @section('content')
     <h2 class="my-4">Configurations</h2>
     <x-error-lens::alert-message />
@@ -29,8 +33,16 @@
                                     </div>
                                     <div class="form-group mb-3 confidentialFieldNames">
                                         <label for="confidentialFieldNames">Confidential Field Names:</label>
-                                        <textarea class="form-control" id="confidentialFieldNames" rows="3" name="confidentialFieldNames"
-                                            placeholder="Comma separated field names">{{ old('confidentialFieldNames', @$configurations['security.confidentialFieldNames']) }}</textarea>
+                                        <select class="form-control js-example-tokenizer w-100" multiple="multiple" name="confidentialFieldNames[]">
+                                            @foreach (old('confidentialFieldNames', @$configurations['security.confidentialFieldNames']) as $fieldName)
+                                                <option selected="selected">{{ $fieldName }}</option>    
+                                            @endforeach
+                                        </select>
+                                        {{-- <option selected="selected">orange</option>
+                                        <option>white</option>
+                                        <option selected="selected">purple</option> --}}
+                                        {{-- <textarea class="form-control" id="confidentialFieldNames" rows="3" name="confidentialFieldNames"
+                                            placeholder="Comma separated field names">{{ old('confidentialFieldNames', @$configurations['security.confidentialFieldNames']) }}</textarea> --}}
                                         <small class="text-danger">
                                             {{ $errors->first('confidentialFieldNames') }}
                                         </small>
@@ -46,6 +58,10 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('script')
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var storeRequestedData = document.getElementById('storeRequestedData');
@@ -62,6 +78,12 @@
             });
 
             storeRequestedData.dispatchEvent(new Event("change"));
+
+            
+            $(".js-example-tokenizer").select2({
+                tags: true,
+                tokenSeparators: [',', ' ']
+            })
         });
     </script>
 @endsection
