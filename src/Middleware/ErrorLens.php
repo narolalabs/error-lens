@@ -9,7 +9,7 @@ use Jenssegers\Agent\Facades\Agent;
 use Narolalabs\ErrorLens\Models\ErrorLog;
 use Narolalabs\ErrorLens\Models\ErrorLogConfig;
 use Symfony\Component\HttpFoundation\Response;
-use Cache;
+use Illuminate\Support\Facades\Cache;
 
 class ErrorLens
 {
