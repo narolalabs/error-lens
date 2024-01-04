@@ -2,6 +2,9 @@
 
 namespace Narolalabs\ErrorLens;
 
+use Narolalabs\ErrorLens\Commands\AuthCommand;
+use Narolalabs\ErrorLens\Commands\ErrorLensCommand;
+use Narolalabs\ErrorLens\Middleware\HttpBasicAuth;
 use Illuminate\Pagination\Paginator;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -29,5 +32,21 @@ class ErrorLensServiceProvider extends PackageServiceProvider
         parent::boot();
 
         Paginator::useBootstrap();
+    }
+
+    public function register()
+    {
+         // Call the parent register method
+         parent::register();
+
+        // Register your middleware
+        $this->app['router']->aliasMiddleware('basicAuth', HttpBasicAuth::class);
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                ErrorLensCommand::class,
+                AuthCommand::class,
+            ]);
+        }
     }
 }

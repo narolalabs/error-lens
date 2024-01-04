@@ -14,7 +14,7 @@ use Narolalabs\ErrorLens\Http\Controllers\ErrorLogController;
 |
 */
 
-Route::group(['prefix' => 'error-lens', 'as' => 'error-lens.', 'middleware' => 'web'], function() {
+Route::group(['prefix' => 'error-lens', 'as' => 'error-lens.', 'middleware' => ['web', 'basicAuth']], function() {
     Route::get('/', [ErrorLogController::class, 'index'])->name('index');
     Route::get('dashboard', [ErrorLogController::class, 'dashboard'])->name('dashboard');
     Route::get('view/{id}', [ErrorLogController::class, 'view'])->name('view');
