@@ -12,7 +12,11 @@ class ErrorLensCommand extends Command
 
     public function handle(): int
     {
-        $this->comment('All done');
+        // Ask the username and password before installation
+        $this->call('error-lens:authentication');
+
+        // Success message
+        $this->info('The package has been installed successfully.');
 
         return self::SUCCESS;
     }
