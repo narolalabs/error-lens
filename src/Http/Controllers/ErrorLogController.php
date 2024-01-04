@@ -130,16 +130,21 @@ class ErrorLogController extends Controller
     public function config(Request $request)
     {
         $configurations = ErrorLogConfig::whereIn('key', ['security.storeRequestedData', 'security.confidentialFieldNames'])->pluck('value', 'key');
+        
+        // Convert comma separated string to array 
+        $configurations['security.confidentialFieldNames'] = explode(',', @$configurations['security.confidentialFieldNames']);
+
         return view('error-lens::config.config', compact('configurations'));
     }
 
     public function config_store(SecurityConfigRequest $request)
     {
         $data = collect($request->all())->only(['storeRequestedData', 'confidentialFieldNames']);
+        
         $data = $data->map(function ($value, $key) use ($request) {
             return [
                 'key' => $request->type . '.' . $key,
-                'value' => ($key == 'confidentialFieldNames') ? implode(',', array_filter(array_map('trim', explode(',', $value)))) : $value,
+                'value' => ($key == 'confidentialFieldNames') ? implode(',', array_filter(array_map('trim', $value))) : $value,
             ];
         })->toArray();
         

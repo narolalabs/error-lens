@@ -9,6 +9,7 @@
         <link rel="icon" type="image/x-icon" href="{{ asset('vendor/error-lens/assets/img/favicon.png') }}" />
         
         <link rel="stylesheet" href="{{ asset('vendor/error-lens/assets/css/bootstrap.min.css') }}" />
+        @yield('style')
         <link rel="stylesheet" href="{{ asset('vendor/error-lens/assets/css/style.css') }}" />
     </head>
     <body>
@@ -45,6 +46,7 @@
         <script src="{{ asset('vendor/error-lens/assets/js/jquery.min.js') }}"></script>
         <script src="{{ asset('vendor/error-lens/assets/js/bootstrap.bundle.min.js') }}"></script>
 
+        @yield('script')
         <script src="{{ asset('vendor/error-lens/assets/js/common.min.js') }}"></script>
         <script src="{{ asset('vendor/error-lens/assets/js/log.min.js') }}"></script>
     </body>
