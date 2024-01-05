@@ -129,29 +129,52 @@ class ErrorLogController extends Controller
 
     public function config(Request $request)
     {
-        $configurations = ErrorLogConfig::whereIn('key', ['security.storeRequestedData', 'security.confidentialFieldNames'])->pluck('value', 'key');
-        
-        // Convert comma separated string to array 
-        $configurations['security.confidentialFieldNames'] = explode(',', @$configurations['security.confidentialFieldNames']);
+        $configurations = ErrorLogConfig::where('key', 'NOT LIKE', 'authenticate.%')->pluck('value', 'key');
+
+        $multiSelectedValues = ['security.confidentialFieldNames', 'error_preferences.severityLevel', 'error_preferences.skipErrorCodes'];
+        foreach ($multiSelectedValues as $multiSelectedValue) {
+            if (isset($configurations[$multiSelectedValue]) && !empty($configurations[$multiSelectedValue])) {
+                // Convert comma separated string to array 
+                $configurations[$multiSelectedValue] = explode(',', @$configurations[$multiSelectedValue]);
+            }
+        }
 
         return view('error-lens::config.config', compact('configurations'));
     }
 
     public function config_store(SecurityConfigRequest $request)
     {
-        $data = collect($request->all())->only(['storeRequestedData', 'confidentialFieldNames']);
-        
-        $data = $data->map(function ($value, $key) use ($request) {
-            return [
-                'key' => $request->type . '.' . $key,
-                'value' => ($key == 'confidentialFieldNames') ? implode(',', array_filter(array_map('trim', $value))) : $value,
-            ];
-        })->toArray();
-        
-        $update = ErrorLogConfig::upsert($data, ['key']);
-        if ($update) {
-            return redirect()->back()->withSuccess('Configuration has been updated successfully.');
+        if ($request->type == 'error_preferences') {
+            $data = collect($request->all())->only(['autoDeleteLog', 'logDeleteAfterDays', 'showRelatedErrors', 'showRelatedErrorsOfDays', 'severityLevel', 'skipErrorCodes']);
+
+            $data = $data->map(function ($value, $key) use ($request) {
+                return [
+                    'key' => $request->type . '.' . $key,
+                    'value' => in_array($key, ['severityLevel', 'skipErrorCodes']) ? implode(',', array_filter(array_map('trim', $value))) : $value,
+                ];
+            })->toArray();
+
+            $update = ErrorLogConfig::upsert($data, ['key']);
+            if ($update) {
+                return redirect()->back()->withSuccess('Preferences have been updated successfully.');
+            }
+
+        } else if ($request->type == 'security') {
+            $data = collect($request->all())->only(['storeRequestedData', 'confidentialFieldNames']);
+
+            $data = $data->map(function ($value, $key) use ($request) {
+                return [
+                    'key' => $request->type . '.' . $key,
+                    'value' => ($key == 'confidentialFieldNames') ? implode(',', array_filter(array_map('trim', $value))) : $value,
+                ];
+            })->toArray();
+
+            $update = ErrorLogConfig::upsert($data, ['key']);
+            if ($update) {
+                return redirect()->back()->withSuccess('Security configurations have been updated successfully.');
+            }
         }
+
         return redirect()->back()->withError('There seems to be an issue! Please try again later.');
     }
 }
