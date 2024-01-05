@@ -156,6 +156,9 @@ class ErrorLogController extends Controller
 
             $update = ErrorLogConfig::upsert($data, ['key']);
             if ($update) {
+                // clear cache
+                $this->call('cache:clear');
+                $this->call('config:cache');
                 return redirect()->back()->withSuccess('Preferences have been updated successfully.');
             }
 
@@ -171,6 +174,9 @@ class ErrorLogController extends Controller
 
             $update = ErrorLogConfig::upsert($data, ['key']);
             if ($update) {
+                // clear cache
+                $this->call('cache:clear');
+                $this->call('config:cache');
                 return redirect()->back()->withSuccess('Security configurations have been updated successfully.');
             }
         }
