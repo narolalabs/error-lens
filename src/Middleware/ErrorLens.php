@@ -43,6 +43,15 @@ class ErrorLens
         if (config('app.env') == 'production' && !config('app.debug')) {
             if ($exception) {
                 try {
+                    $guards = array_keys(config('auth.guards')) ;
+                    
+                    $guardName = null;
+                    foreach($guards as $guard){
+                        if(auth()->guard($guard)->check()){
+                            $guardName = $guard;
+                        }
+                    }
+
                     // Replace the confidential string with stars (*)
                     $confidetialFields = explode(',', config('error-lens.security.confidentialFieldNames'));
                     $requestedData = collect($request->all())->map(function ($value, $key) use ($confidetialFields) {
@@ -87,6 +96,7 @@ class ErrorLens
                         'ip_address' => $request->ip(),
                         'previous_url' => url()->previous(),
                         'browser' => "$browser - v"  . Agent::version($browser),
+                        'guard' => $guardName
                     ]);
                 } catch (\Exception $e) {
                 }
