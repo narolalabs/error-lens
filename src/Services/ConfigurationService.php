@@ -1,6 +1,7 @@
 <?php 
 namespace Narolalabs\ErrorLens\Services;
 use Narolalabs\ErrorLens\Models\ErrorLogConfig;
+use Illuminate\Support\Collection;
 
 class ConfigurationService
 {
@@ -31,7 +32,7 @@ class ConfigurationService
      * @param array $keys
      * @return void
      */
-    public function fetchConfigurationsDetail(array $keys): void
+    public function fetchConfigurationsDetail(array $keys): Collection
     {
         return ErrorLogConfig::whereIn('key', $keys)->pluck('value', 'key');
     }    
