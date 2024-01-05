@@ -112,7 +112,7 @@ class ErrorLens
                         'message' => $message,
                         'error' => $error,
                         'trace' => $exception->getTrace(),
-                        'email' => $request->user() ? $request->user()->email : null,
+                        'email' => $guardName && auth()->guard($guardName)->check() ? auth()->guard($guardName)->user()->email : null,
                         'ip_address' => $request->ip(),
                         'previous_url' => url()->previous(),
                         'browser' => "$browser - v"  . Agent::version($browser),
