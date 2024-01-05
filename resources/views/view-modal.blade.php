@@ -91,6 +91,13 @@
                                         @endif
                                     </div>
                                 </div>
+
+                                @if($errorLog->email && $errorLog->guard)
+                                <div class="mb-3 input_custom">
+                                    <label class="fw-bold">Logged-in guard?</label>
+                                    <span class="form-control">{{ $errorLog->guard }}</span>
+                                </div>
+                                @endif
                             </div>
                         </div>
                     </div>
