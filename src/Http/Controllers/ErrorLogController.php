@@ -5,6 +5,7 @@ namespace Narolalabs\ErrorLens\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Narolalabs\ErrorLens\Http\Requests\ArchiveErrorLogRequest;
 use Narolalabs\ErrorLens\Models\ErrorLog;
 use Illuminate\Routing\Controller;
 use Narolalabs\ErrorLens\Http\Requests\SecurityConfigRequest;
@@ -181,6 +182,29 @@ class ErrorLogController extends Controller
             }
         }
 
+        return redirect()->back()->withError('There seems to be an issue! Please try again later.');
+    }
+
+    public function archive_selected(ArchiveErrorLogRequest $request)
+    {
+        $errorLogIds = explode(',', $request->archiveErrorId);
+        $errorLogs = ErrorLog::whereIn('id', $errorLogIds)->each(function ($errorLog) {
+            //getting the record one by one that want to be copied
+            //copy them using replicate and setting destination table by setTable()
+            $newErrorLog = $errorLog->replicate()->setTable('error_logs_archived');
+            $newErrorLog->id = $errorLog->id;
+            $newErrorLog->created_at = $errorLog->created_at;
+            $newErrorLog->updated_at = $errorLog->updated_at;
+            $newErrorLog->save();
+
+            //add following command if you need to remove records from error-log table
+            $errorLog->delete();
+        });
+
+        if ($errorLogs) {
+            $message = (count($errorLogIds) <= 1 ? 'The error log has' : 'Error logs have')."  been archived successfully.";
+            return redirect()->back()->withSuccess($message);
+        }
         return redirect()->back()->withError('There seems to be an issue! Please try again later.');
     }
 }

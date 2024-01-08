@@ -21,4 +21,5 @@ Route::group(['prefix' => 'error-lens', 'as' => 'error-lens.', 'middleware' => [
     Route::post('clear-all', [ErrorLogController::class, 'clear'])->name('clear');
     Route::get('config', [ErrorLogController::class, 'config'])->name('config');
     Route::post('config', [ErrorLogController::class, 'config_store'])->name('config.store');
+    Route::post('archive-selected', [ErrorLogController::class, 'archive_selected'])->name('archive.selected');
 });

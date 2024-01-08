@@ -96,17 +96,38 @@
             </div>
         </div>
     </div>
-    <div class="col-md-9">
 
+    <div class="col-sm-12">
+        <x-error-lens::alert-message :customMessage="$errors->all()"/>
+    </div>
+    
+    <div class="col-md-9">
         <div class="row mb-3">
             <div class="col-12">
                 <div class="card card_custom">
                     <h4 class="card-header">{{ $activeError }}</h4>
                     <div class="custom_table p-4">
+                        <div>
+                            <form action="{{ route('error-lens.archive.selected') }}" method="POST" id="archiveErrorForm" class="d-none">
+                                @csrf
+                                @method('POST')
+                                <input type="hidden" name="archiveErrorId" id="archiveErrorId">
+                                <div class="align-middle">
+                                    <b><span id="selectedCheckboxCount">0</span> Selected</b>
+                                    <button class="btn btn-primary ms-2">Archive</button>
+                                </div>
+                            </form>
+                        </div>
                         <div class="table-responsive">
                             <table class="table table-striped table-hover">
                                 <thead>
                                     <tr>
+                                        <th>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value=""
+                                                    id="selectAll">
+                                            </div>
+                                        </th>
                                         <th>URL</th>
                                         <th>Message</th>
                                         <th>Occured At</th>
@@ -116,6 +137,11 @@
                                 <tbody>
                                     @forelse( $errorLogs as $errorLog )
                                         <tr>
+                                            <td>
+                                                <div class="form-check">
+                                                    <input class="form-check-input singleCheckbox" type="checkbox" value="{{ $errorLog->id }}">
+                                                </div>
+                                            </td>
                                             <td width="30%">{{ $errorLog->url }}</td>
                                             <td>{{ $errorLog->message }}</td>
                                             <td width="20%">{{ date('dS F, Y H:i', strtotime($errorLog->created_at)) }}</td>
@@ -127,15 +153,14 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="4" class="text-center">
+                                            <td colspan="5" class="text-center">
                                                 <h6>No errors reported.</h6>
                                             </td>
                                         </tr>
                                     @endforelse
                                 </tbody>
                             </table>
-                        
-                        {{ $errorLogs->withQueryString()->links() }}
+                            {{ $errorLogs->withQueryString()->links() }}
                         </div>
                     </div>
                 </div>
@@ -148,4 +173,64 @@
     </div>
 </div>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var selectAll = document.getElementById('selectAll');
+        var singleCheckboxes = document.querySelectorAll('.singleCheckbox');
+        var selectedCheckboxCount = document.getElementById('selectedCheckboxCount');
+        var archiveErrorForm = document.getElementById('archiveErrorForm');
+        var archiveErrorId = document.getElementById('archiveErrorId');
+        
+        // While user click on select all checkbox then checked-unchecked all checkboxes
+        selectAll.addEventListener('change', function (event) {
+            for (const key in singleCheckboxes) {
+                if (singleCheckboxes.hasOwnProperty.call(singleCheckboxes, key)) {
+                    singleCheckboxes[key].checked = event.target.checked;
+                }
+            }
+
+            hideShowArchiveErrorFrom();
+        });
+
+        // While single checkbox checked, based on that, check-uncheck selectall checkbox
+        singleCheckboxes.forEach(function (singleCheckbox) {
+            singleCheckbox.addEventListener('change', function (event) {
+                selectAll.checked = ! document.querySelectorAll('.singleCheckbox:not(:checked)').length
+                
+                hideShowArchiveErrorFrom();
+            });
+        });
+
+        archiveErrorForm.addEventListener('submit', function (event) {
+            if ( ! archiveErrorId.value.trim()) {
+                alert('Please select at least one checkbox.');
+                event.preventDefault();
+                return false;
+            }
+
+            if ( ! confirm('Are you sure you want to archive the selected error logs?')) {
+                event.preventDefault();
+            }
+        });
+
+        // Hide show archive error form
+        function hideShowArchiveErrorFrom() {
+            let checkedCheckboxes = document.querySelectorAll('.singleCheckbox:checked');
+            archiveErrorForm.classList.add('d-none');
+
+            // Display selected checkbox counting
+            if (checkedCheckboxes.length) {
+                archiveErrorForm.classList.remove('d-none');
+                selectedCheckboxCount.innerText = checkedCheckboxes.length;
+            }
+
+            // Set the checkbox value in archive form
+            let checkboxIds = [];
+            checkedCheckboxes.forEach(function (checkbox) {
+                checkboxIds.push(checkbox.value);
+            });
+            archiveErrorId.value = checkboxIds.toString();
+        }
+    });
+</script>
 @endsection
