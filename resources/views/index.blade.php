@@ -1,7 +1,13 @@
 @extends('error-lens::layouts.app')
 
 @section('content')
-<h2 class="my-4">Dashboard</h2>
+@php
+    $isArchivedPage = request()->route()->getName() === 'error-lens.archived.index';
+    $currentRouteName = $isArchivedPage ? 'error-lens.archived.index' : 'error-lens.index';
+    $viewRouteName = $isArchivedPage ? 'error-lens.archived.view' : 'error-lens.view';
+    $heading = $isArchivedPage ? 'Archived List' : 'Dashboard';
+@endphp
+<h2 class="my-4">{{ $heading }}</h2>
 <div class="row">
     <div class="col-sm-12">
         <div class="row mb-4">
@@ -18,7 +24,7 @@
                         </div>
                     </div>
                     <div class="card-body d-flex justify-content-between align-items-end py-2">
-                        <a href="{{ route('error-lens.index', ['view' => 'today']) }}" class="text-decoration-none">   
+                        <a href="{{ route($currentRouteName, ['view' => 'today']) }}" class="text-decoration-none">   
                             View
                             <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><path d="M502.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L402.7 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l370.7 0-73.4 73.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l128-128z"></path></svg>
                         </a>
@@ -39,7 +45,7 @@
                         </div>
                     </div>
                     <div class="card-body d-flex justify-content-between align-items-end py-2">
-                        <a href="{{ route('error-lens.index', ['view' => 'yesterday']) }}" class="text-decoration-none">
+                        <a href="{{ route($currentRouteName, ['view' => 'yesterday']) }}" class="text-decoration-none">
                             View
                             <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512">
                                 <path d="M502.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L402.7 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l370.7 0-73.4 73.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l128-128z"></path>
@@ -62,7 +68,7 @@
                         </div>
                     </div>
                     <div class="card-body d-flex justify-content-between align-items-end py-2">
-                        <a href="{{ route('error-lens.index', ['view' => 'last-month']) }}" class="text-decoration-none">
+                        <a href="{{ route($currentRouteName, ['view' => 'last-month']) }}" class="text-decoration-none">
                             View
                             <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512">
                                 <path d="M502.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L402.7 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l370.7 0-73.4 73.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l128-128z"></path>
@@ -85,7 +91,7 @@
                         </div>
                     </div>
                     <div class="card-body d-flex justify-content-between align-items-end py-2">
-                        <a href="{{ route('error-lens.index', ['view' => 'current-year']) }}" class="text-decoration-none">
+                        <a href="{{ route($currentRouteName, ['view' => 'current-year']) }}" class="text-decoration-none">
                             View
                             <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512">
                                 <path d="M502.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L402.7 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l370.7 0-73.4 73.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l128-128z"></path>
@@ -108,7 +114,16 @@
                     <h4 class="card-header">{{ $activeError }}</h4>
                     <div class="custom_table p-4">
                         <div>
-                            <form action="{{ route('error-lens.archive.selected') }}" method="POST" id="archiveErrorForm" class="d-none">
+                            <form action="{{ route('error-lens.archived') }}" method="POST" id="archivedErrorForm" class="d-none">
+                                @csrf
+                                @method('POST')
+                                <input type="hidden" name="errorId" id="erorId">
+                                <div class="align-middle">
+                                    <b><span id="selectedCheckboxCount">0</span> Selected</b>
+                                    <button class="btn btn-primary ms-2">Archive</button>
+                                </div>
+                            </form>
+                            <form action="{{ route('error-lens.archived.delete-selected') }}" method="POST" id="archivedErrorDeleteForm" class="d-none">
                                 @csrf
                                 @method('POST')
                                 <input type="hidden" name="archiveErrorId" id="archiveErrorId">
@@ -146,7 +161,7 @@
                                             <td>{{ $errorLog->message }}</td>
                                             <td width="20%">{{ date('dS F, Y H:i', strtotime($errorLog->created_at)) }}</td>
                                             <td>
-                                                <a href="{{ route('error-lens.view', [ 'id' => $errorLog->id ]) }}" class="btn btn-link text-decoration-none view-error">
+                                                <a href="{{ route($viewRouteName, [ 'id' => $errorLog->id ]) }}" class="btn btn-link text-decoration-none view-error">
                                                     <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 576 512"><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM144 256a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm144-64c0 35.3-28.7 64-64 64c-7.1 0-13.9-1.2-20.3-3.3c-5.5-1.8-11.9 1.6-11.7 7.4c.3 6.9 1.3 13.8 3.2 20.7c13.7 51.2 66.4 81.6 117.6 67.9s81.6-66.4 67.9-117.6c-11.1-41.5-47.8-69.4-88.6-71.1c-5.8-.2-9.2 6.1-7.4 11.7c2.1 6.4 3.3 13.2 3.3 20.3z"></path></svg>
                                                 </a>
                                             </td>
@@ -178,8 +193,8 @@
         var selectAll = document.getElementById('selectAll');
         var singleCheckboxes = document.querySelectorAll('.singleCheckbox');
         var selectedCheckboxCount = document.getElementById('selectedCheckboxCount');
-        var archiveErrorForm = document.getElementById('archiveErrorForm');
-        var archiveErrorId = document.getElementById('archiveErrorId');
+        var archivedErrorForm = document.getElementById('archivedErrorForm');
+        var errorId = document.getElementById('errorId');
         
         // While user click on select all checkbox then checked-unchecked all checkboxes
         selectAll.addEventListener('change', function (event) {
@@ -201,8 +216,8 @@
             });
         });
 
-        archiveErrorForm.addEventListener('submit', function (event) {
-            if ( ! archiveErrorId.value.trim()) {
+        archivedErrorForm.addEventListener('submit', function (event) {
+            if ( ! errorId.value.trim()) {
                 alert('Please select at least one checkbox.');
                 event.preventDefault();
                 return false;
@@ -216,11 +231,11 @@
         // Hide show archive error form
         function hideShowArchiveErrorFrom() {
             let checkedCheckboxes = document.querySelectorAll('.singleCheckbox:checked');
-            archiveErrorForm.classList.add('d-none');
+            archivedErrorForm.classList.add('d-none');
 
             // Display selected checkbox counting
             if (checkedCheckboxes.length) {
-                archiveErrorForm.classList.remove('d-none');
+                archivedErrorForm.classList.remove('d-none');
                 selectedCheckboxCount.innerText = checkedCheckboxes.length;
             }
 
@@ -229,7 +244,7 @@
             checkedCheckboxes.forEach(function (checkbox) {
                 checkboxIds.push(checkbox.value);
             });
-            archiveErrorId.value = checkboxIds.toString();
+            errorId.value = checkboxIds.toString();
         }
     });
 </script>

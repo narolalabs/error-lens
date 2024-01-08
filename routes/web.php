@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Narolalabs\ErrorLens\Http\Controllers\ErrorLogController;
+use Narolalabs\ErrorLens\Http\Controllers\ArchivedErrorLogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,5 +22,12 @@ Route::group(['prefix' => 'error-lens', 'as' => 'error-lens.', 'middleware' => [
     Route::post('clear-all', [ErrorLogController::class, 'clear'])->name('clear');
     Route::get('config', [ErrorLogController::class, 'config'])->name('config');
     Route::post('config', [ErrorLogController::class, 'config_store'])->name('config.store');
-    Route::post('archive-selected', [ErrorLogController::class, 'archive_selected'])->name('archive.selected');
+    Route::post('archive-selected', [ErrorLogController::class, 'archive_selected'])->name('archived');
+
+    Route::group(['prefix' => 'archived', 'as' => 'archived.'], function() {
+        Route::get('/', [ArchivedErrorLogController::class, 'index'])->name('index');
+        Route::get('view/{id}', [ArchivedErrorLogController::class, 'view'])->name('view');
+        Route::get('delete-selected', [ArchivedErrorLogController::class, 'destroy'])->name('delete-selected');
+    });
+    
 });

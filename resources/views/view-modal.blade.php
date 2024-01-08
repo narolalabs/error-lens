@@ -1,3 +1,7 @@
+@php
+    $isArchivedPage = isset($isArchivedPage) ?? false;
+    $fulPageViewRouteName = $isArchivedPage ? 'error-lens.archived.view' : 'error-lens.view';
+@endphp
 <div class="offcanvas-header flex-column">
     <div class="full-log-view">
         <h6>Error Message:</h6>
@@ -8,7 +12,7 @@
         </small>
 
         <div class="small">
-            <a href="{{ route('error-lens.view', ['id' => $errorLog->id]) }}" target="_blank" title="Full View" class="text-decoration-none">
+            <a href="{{ route($fulPageViewRouteName, ['id' => $errorLog->id]) }}" target="_blank" title="Full View" class="text-decoration-none">
                 <span>View in full screen</span>
             </a>
         </div>

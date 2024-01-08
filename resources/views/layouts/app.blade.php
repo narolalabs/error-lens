@@ -26,6 +26,9 @@
                 <div class="collapse navbar-collapse justify-content-end" id="navbarResponsive">
                     <ul class="navbar-nav ml-auto">
                         <li class="nav-item">
+                            <a class="nav-link text-white" href="{{ route('error-lens.archived.index') }}">Archived</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link text-white" href="{{ route('error-lens.config') }}">Config</a>
                         </li>
                         <li class="nav-item">
