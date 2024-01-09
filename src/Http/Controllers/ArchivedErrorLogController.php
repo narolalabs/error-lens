@@ -2,15 +2,9 @@
 
 namespace Narolalabs\ErrorLens\Http\Controllers;
 
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
-use Narolalabs\ErrorLens\Http\Requests\ArchiveErrorLogRequest;
 use Narolalabs\ErrorLens\Models\ArchivedErrorLog;
-use Narolalabs\ErrorLens\Models\ErrorLog;
 use Illuminate\Routing\Controller;
-use Narolalabs\ErrorLens\Http\Requests\SecurityConfigRequest;
-use Narolalabs\ErrorLens\Models\ErrorLogConfig;
 
 class ArchivedErrorLogController extends Controller
 {

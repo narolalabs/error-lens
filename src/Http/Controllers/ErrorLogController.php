@@ -4,12 +4,9 @@ namespace Narolalabs\ErrorLens\Http\Controllers;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 use Narolalabs\ErrorLens\Http\Requests\ArchiveErrorLogRequest;
 use Narolalabs\ErrorLens\Models\ErrorLog;
 use Illuminate\Routing\Controller;
-use Narolalabs\ErrorLens\Http\Requests\SecurityConfigRequest;
-use Narolalabs\ErrorLens\Models\ErrorLogConfig;
 
 class ErrorLogController extends Controller
 {
@@ -163,64 +160,6 @@ class ErrorLogController extends Controller
 
         return redirect()->back();
     }
-
-    public function config(Request $request)
-    {
-        $configurations = ErrorLogConfig::where('key', 'NOT LIKE', 'authenticate.%')->pluck('value', 'key');
-
-        $multiSelectedValues = ['security.confidentialFieldNames', 'error_preferences.severityLevel', 'error_preferences.skipErrorCodes'];
-        foreach ($multiSelectedValues as $multiSelectedValue) {
-            if (isset($configurations[$multiSelectedValue]) && !empty($configurations[$multiSelectedValue])) {
-                // Convert comma separated string to array 
-                $configurations[$multiSelectedValue] = explode(',', @$configurations[$multiSelectedValue]);
-            }
-        }
-
-        return view('error-lens::config.config', compact('configurations'));
-    }
-
-    public function config_store(SecurityConfigRequest $request)
-    {
-        if ($request->type == 'error_preferences') {
-            $data = collect($request->all())->only(['autoDeleteLog', 'logDeleteAfterDays', 'showRelatedErrors', 'showRelatedErrorsOfDays', 'severityLevel', 'skipErrorCodes']);
-
-            $data = $data->map(function ($value, $key) use ($request) {
-                return [
-                    'key' => $request->type . '.' . $key,
-                    'value' => in_array($key, ['severityLevel', 'skipErrorCodes']) ? implode(',', array_filter(array_map('trim', $value))) : $value,
-                ];
-            })->toArray();
-
-            $update = ErrorLogConfig::upsert($data, ['key']);
-            if ($update) {
-                // clear cache
-                // $this->call('cache:clear');
-                // $this->call('config:cache');
-                return redirect()->back()->withSuccess('Preferences have been updated successfully.');
-            }
-
-        } else if ($request->type == 'security') {
-            $data = collect($request->all())->only(['storeRequestedData', 'confidentialFieldNames']);
-
-            $data = $data->map(function ($value, $key) use ($request) {
-                return [
-                    'key' => $request->type . '.' . $key,
-                    'value' => ($key == 'confidentialFieldNames') ? implode(',', array_filter(array_map('trim', $value))) : $value,
-                ];
-            })->toArray();
-
-            $update = ErrorLogConfig::upsert($data, ['key']);
-            if ($update) {
-                // clear cache
-                // $this->call('cache:clear');
-                // $this->call('config:cache');
-                return redirect()->back()->withSuccess('Security configurations have been updated successfully.');
-            }
-        }
-
-        return redirect()->back()->withError('There seems to be an issue! Please try again later.');
-    }
-
     public function archive_selected(ArchiveErrorLogRequest $request)
     {
         $errorLogIds = explode(',', $request->errorId);
