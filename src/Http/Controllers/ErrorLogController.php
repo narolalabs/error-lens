@@ -74,6 +74,7 @@ class ErrorLogController extends Controller
     public function index( Request $request )
     {
         $activeError = current(static::$queryString);
+        $search = addslashes($request->searchErrorInput);
 
         if ( $request->view && !in_array($request->view, static::$queryString) ) {
             return redirect()->route('error-lens.index');
@@ -85,17 +86,36 @@ class ErrorLogController extends Controller
             'last_month_errors_count' => ErrorLog::select('id')->getFilters(date('Y-m', strtotime('last month')))->count(),
             'current_year_errors_count' => ErrorLog::select('id')->getFilters(date('Y'))->count(),
         ];
-        $data['errorLogs'] = ErrorLog::getFilters(
+        $query = ErrorLog::getFilters(
             $this->getFilterValue($request->view ?? $this->getDefaultFilter())
         )
         ->select([
             'id', 'url', 'message', 'created_at',
-        ])
-        ->latest()
+        ]);
+
+        if ($search) {
+            $query = $query->where(function ($subQuery) use ($search) {
+                $subQuery->orWhere('url', 'LIKE', "%$search%");
+                $subQuery->orWhere('message', 'LIKE', "%$search%");
+            });
+        }
+        
+        $query = $query->latest()
         ->paginate($this->getPerPageRecordLenght());
 
+        $data['errorLogs'] = $query;
         $data['activeError'] = $this->getTitle($request->view ?? $this->getDefaultFilter());
 
+        if ($request->ajax()) {
+            $data['viewRouteName'] = (request()->route()->getName() === 'error-lens.index.search') ? 'error-lens.view' : 'error-lens.archived.view';
+            return response()->json([
+                'flag' => true,
+                'message' => 'Error log listing fetch successfully.',
+                'data' => [
+                    'view' => view('error-lens::error-list', $data)->render()
+                ]
+            ]);    
+        }
         return view('error-lens::index', $data);
     }
 

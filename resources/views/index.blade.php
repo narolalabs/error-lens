@@ -133,49 +133,20 @@
                                 </div>
                             </form>
                         </div>
-                        <div class="table-responsive">
-                            <table class="table table-striped table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value=""
-                                                    id="selectAll">
-                                            </div>
-                                        </th>
-                                        <th>URL</th>
-                                        <th>Message</th>
-                                        <th>Occured At</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse( $errorLogs as $errorLog )
-                                        <tr>
-                                            <td>
-                                                <div class="form-check">
-                                                    <input class="form-check-input singleCheckbox" type="checkbox" value="{{ $errorLog->id }}">
-                                                </div>
-                                            </td>
-                                            <td width="30%">{{ $errorLog->url }}</td>
-                                            <td>{{ $errorLog->message }}</td>
-                                            <td width="20%">{{ date('dS F, Y H:i', strtotime($errorLog->created_at)) }}</td>
-                                            <td>
-                                                <a href="{{ route($viewRouteName, [ 'id' => $errorLog->id ]) }}" class="btn btn-link text-decoration-none view-error">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 576 512"><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM144 256a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm144-64c0 35.3-28.7 64-64 64c-7.1 0-13.9-1.2-20.3-3.3c-5.5-1.8-11.9 1.6-11.7 7.4c.3 6.9 1.3 13.8 3.2 20.7c13.7 51.2 66.4 81.6 117.6 67.9s81.6-66.4 67.9-117.6c-11.1-41.5-47.8-69.4-88.6-71.1c-5.8-.2-9.2 6.1-7.4 11.7c2.1 6.4 3.3 13.2 3.3 20.3z"></path></svg>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="5" class="text-center">
-                                                <h6>No errors reported.</h6>
-                                            </td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                            {{ $errorLogs->withQueryString()->links() }}
+                        <div class="row">
+                            <div class="col-md-12">
+                                <form action="" method="POST" id="searchErrorForm">
+                                    @csrf
+                                    @method('POST')
+                                    <div class="input-group mb-3">
+                                        <input type="text" class="form-control" placeholder="Search error" aria-label="Search error" aria-describedby="searchErrorButton" name="searchErrorInput" id="searchErrorInput">
+                                        <button class="btn btn-outline-secondary" type="submit" id="searchErrorButton">Button</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div id="errorListingTableWrapper">
+                            @include('error-lens::error-list')
                         </div>
                     </div>
                 </div>
@@ -193,34 +164,26 @@
         var isArchivedPage = @if($isArchivedPage) true @else false @endif;
         var selectAll = document.getElementById('selectAll');
         var singleCheckboxes = document.querySelectorAll('.singleCheckbox');
+        var errorListingTableWrapper = document.getElementById('errorListingTableWrapper');
+
+        // Search error form parameters
+        var searchErrorForm = document.getElementById('searchErrorForm');
+        var searchErrorInput = document.getElementById('searchErrorInput');
+
         // Archive error form parameters
         var archivedErrorForm = document.getElementById('archivedErrorForm');
         var selectedCheckboxCount = document.getElementById('selectedCheckboxCount');
         var errorId = document.getElementById('errorId');
+
         // Archived error delete form parameteres
         var archivedErrorDeleteForm = document.getElementById('archivedErrorDeleteForm');
         var selectedArchivedCheckboxCount = document.getElementById('selectedArchivedCheckboxCount');
         var archiveErrorId = document.getElementById('archiveErrorId');
-        
-        // While user click on select all checkbox then checked-unchecked all checkboxes
-        selectAll.addEventListener('change', function (event) {
-            for (const key in singleCheckboxes) {
-                if (singleCheckboxes.hasOwnProperty.call(singleCheckboxes, key)) {
-                    singleCheckboxes[key].checked = event.target.checked;
-                }
-            }
-            (isArchivedPage) ? hideShowArchivedErrorDeleteFrom() : hideShowArchiveErrorFrom();
-        });
 
-        // While single checkbox checked, based on that, check-uncheck selectall checkbox
-        singleCheckboxes.forEach(function (singleCheckbox) {
-            singleCheckbox.addEventListener('change', function (event) {
-                selectAll.checked = ! document.querySelectorAll('.singleCheckbox:not(:checked)').length;
-                
-                (isArchivedPage) ? hideShowArchivedErrorDeleteFrom() : hideShowArchiveErrorFrom();
-            });
-        });
+        managePagination();
+        selectAllCheckbox();
 
+        // Archive the errors
         archivedErrorForm.addEventListener('submit', function (event) {
             if ( ! errorId.value.trim()) {
                 alert('Please select at least one checkbox.');
@@ -232,6 +195,29 @@
                 event.preventDefault();
             }
         });
+
+        // Paginate the listing
+        searchErrorForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            // Get form data
+            let formData = new FormData(searchErrorForm);
+            loadTableData('POST', window.location.href, formData);
+        });
+
+       
+        function managePagination() {
+            var pageLinks = document.querySelectorAll('.page-link');
+            pageLinks.forEach(pageLink => {
+                pageLink.addEventListener('click', function (event) {
+                    event.preventDefault();
+
+                    // Get form data
+                    let formData = new FormData(searchErrorForm);
+                    loadTableData('POST', event.target.href, formData);
+                });    
+            });
+        }
 
         // Hide show archive error form
         function hideShowArchiveErrorFrom() {
@@ -269,6 +255,65 @@
                 checkboxIds.push(checkbox.value);
             });
             archiveErrorId.value = checkboxIds.toString();
+        }
+
+        // Initialize the checkbox variables and events for the same
+        function selectAllCheckbox() {
+            selectAll = document.getElementById('selectAll');
+            singleCheckboxes = document.querySelectorAll('.singleCheckbox');
+
+             // While user click on select all checkbox then checked-unchecked all checkboxes
+            selectAll.addEventListener('change', function (event) {
+                for (const key in singleCheckboxes) {
+                    if (singleCheckboxes.hasOwnProperty.call(singleCheckboxes, key)) {
+                        singleCheckboxes[key].checked = event.target.checked;
+                    }
+                }
+                (isArchivedPage) ? hideShowArchivedErrorDeleteFrom() : hideShowArchiveErrorFrom();
+            });
+
+            // While single checkbox checked, based on that, check-uncheck selectall checkbox
+            singleCheckboxes.forEach(function (singleCheckbox) {
+                singleCheckbox.addEventListener('change', function (event) {
+                    selectAll.checked = ! document.querySelectorAll('.singleCheckbox:not(:checked)').length;
+                    
+                    (isArchivedPage) ? hideShowArchivedErrorDeleteFrom() : hideShowArchiveErrorFrom();
+                });
+            });
+        }
+
+        // Load table data while user search or paginate
+        function loadTableData(method, url, formData) {
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", url, true);
+
+            // Set the X-Requested-With header to XMLHttpRequest
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+            // Set up the callback
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    // Handle the response here
+                    let response = JSON.parse(xhr.responseText);
+                    errorListingTableWrapper.innerHTML = response['data']['view'];
+                    
+                    // Reinitialize the checkbox events
+                    selectAllCheckbox();
+                    
+                    // On click on checkbox hide show archive/delete form
+                    hideShowArchiveErrorFrom();
+                    hideShowArchivedErrorDeleteFrom();
+
+                    // Apply AJAX on pagination click
+                    managePagination();
+
+                    // Scroll up
+                    document.getElementsByTagName("body")[0].scrollIntoView();
+                }
+            };
+
+            // Send the request with the form data
+            xhr.send(formData);
         }
     });
 </script>
