@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Narolalabs\ErrorLens\Http\Controllers\ConfigurationController;
 use Narolalabs\ErrorLens\Http\Controllers\ErrorLogController;
 use Narolalabs\ErrorLens\Http\Controllers\ArchivedErrorLogController;
 
@@ -21,9 +22,11 @@ Route::group(['prefix' => 'error-lens', 'as' => 'error-lens.', 'middleware' => [
     Route::get('dashboard', [ErrorLogController::class, 'dashboard'])->name('dashboard');
     Route::get('view/{id}', [ErrorLogController::class, 'view'])->name('view');
     Route::post('clear-all', [ErrorLogController::class, 'clear'])->name('clear');
-    Route::get('config', [ErrorLogController::class, 'config'])->name('config');
-    Route::post('config', [ErrorLogController::class, 'config_store'])->name('config.store');
     Route::post('archive-selected', [ErrorLogController::class, 'archive_selected'])->name('archived');
+
+    Route::get('config', [ConfigurationController::class, 'config'])->name('config');
+    Route::post('config', [ConfigurationController::class, 'config_store'])->name('config.store');
+    Route::post('clear-cache', [ConfigurationController::class, 'cache_clear'])->name('config.cache-clear');
 
     Route::group(['prefix' => 'archived', 'as' => 'archived.'], function() {
         Route::get('/', [ArchivedErrorLogController::class, 'index'])->name('index');

@@ -20,6 +20,9 @@
                 <div class="col-12">
                     @include('error-lens::config.securityConfig')
                 </div>
+                <div class="col-12">
+                    @include('error-lens::config.cacheClearConfig')
+                </div>
             </div>
         </div>
     </div>
