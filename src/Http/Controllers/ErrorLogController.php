@@ -75,6 +75,7 @@ class ErrorLogController extends Controller
     {
         $activeError = current(static::$queryString);
         $search = addslashes($request->searchErrorInput);
+        $relevant = $request->relevant;
 
         if ( $request->view && !in_array($request->view, static::$queryString) ) {
             return redirect()->route('error-lens.index');
@@ -99,6 +100,12 @@ class ErrorLogController extends Controller
                 $subQuery->orWhere('message', 'LIKE', "%$search%");
             });
         }
+        if ($relevant && config('error-lens.error_preferences.showRelatedErrors') && config('error-lens.error_preferences.showRelatedErrorsOfDays')) {
+            $errorLog = ErrorLog::findOrFail($relevant);
+            $query = $query->where('message', $errorLog->message)
+            ->where('email', '!=',  $errorLog->email)
+            ->where('created_at', '>=',  now()->subDays(config('error-lens.error_preferences.showRelatedErrorsOfDays')));
+        }
         
         $query = $query->latest()
         ->paginate($this->getPerPageRecordLenght());
@@ -121,8 +128,17 @@ class ErrorLogController extends Controller
 
     public function view( Request $request, string $id )
     {
-        $data['errorLog'] = ErrorLog::findOrFail($id);
+        $errorLog = ErrorLog::findOrFail($id);
 
+        $data['errorLog'] = $errorLog;
+        $data['relevantErrors'] = 0;
+        if (config('error-lens.error_preferences.showRelatedErrors') && config('error-lens.error_preferences.showRelatedErrorsOfDays')) {
+            $data['relevantErrors'] = ErrorLog::where('message', $errorLog->message)
+                    ->where('email', '!=',  $errorLog->email)
+                    ->where('created_at', '>=',  now()->subDays(config('error-lens.error_preferences.showRelatedErrorsOfDays')))
+                    ->count();
+        }
+        
         if ( $request->ajax() ) {
             $data = [
                 'status' => true,
@@ -178,8 +194,8 @@ class ErrorLogController extends Controller
             $update = ErrorLogConfig::upsert($data, ['key']);
             if ($update) {
                 // clear cache
-                $this->call('cache:clear');
-                $this->call('config:cache');
+                // $this->call('cache:clear');
+                // $this->call('config:cache');
                 return redirect()->back()->withSuccess('Preferences have been updated successfully.');
             }
 
@@ -196,8 +212,8 @@ class ErrorLogController extends Controller
             $update = ErrorLogConfig::upsert($data, ['key']);
             if ($update) {
                 // clear cache
-                $this->call('cache:clear');
-                $this->call('config:cache');
+                // $this->call('cache:clear');
+                // $this->call('config:cache');
                 return redirect()->back()->withSuccess('Security configurations have been updated successfully.');
             }
         }

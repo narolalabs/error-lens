@@ -82,6 +82,7 @@ class ArchivedErrorLogController extends Controller
     {
         $activeError = current(static::$queryString);
         $search = addslashes($request->searchErrorInput);
+        $relevant = $request->relevant;
 
         if ( $request->view && !in_array($request->view, static::$queryString) ) {
             return redirect()->route('error-lens.index');
@@ -106,7 +107,13 @@ class ArchivedErrorLogController extends Controller
                 $subQuery->orWhere('message', 'LIKE', "%$search%");
             });
         }
-
+        if ($relevant && config('error-lens.error_preferences.showRelatedErrors') && config('error-lens.error_preferences.showRelatedErrorsOfDays')) {
+            $errorLog = ArchivedErrorLog::findOrFail($relevant);
+            $query = $query->where('message', $errorLog->message)
+                ->where('email', '!=',  $errorLog->email)
+                ->where('created_at', '>=',  now()->subDays(config('error-lens.error_preferences.showRelatedErrorsOfDays')));
+        }
+        
         $query = $query->latest()
         ->paginate($this->getPerPageRecordLenght());
 
@@ -135,8 +142,16 @@ class ArchivedErrorLogController extends Controller
      */
     public function view( Request $request, string $id )
     {
-        $data['errorLog'] = ArchivedErrorLog::findOrFail($id);
-        $data['isArchivedPage'] = request()->route()->getName() === 'error-lens.archived.view';
+        $errorLog = ArchivedErrorLog::findOrFail($id);
+
+        $data['errorLog'] = $errorLog;
+        $data['relevantErrors'] = 0;
+        if (config('error-lens.error_preferences.showRelatedErrors') && config('error-lens.error_preferences.showRelatedErrorsOfDays')) {
+            $data['relevantErrors'] = ArchivedErrorLog::where('message', $errorLog->message)
+                    ->where('email', '!=',  $errorLog->email)
+                    ->where('created_at', '>=',  now()->subDays(config('error-lens.error_preferences.showRelatedErrorsOfDays')))
+                    ->count();
+        }
         
         if ( $request->ajax() ) {
             $data = [

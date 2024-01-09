@@ -3,12 +3,21 @@
 @section('content')
 @php
     $isArchivedPage = request()->route()->getName() === 'error-lens.archived.index';
+    $isRelevantPage = request()->relevant ?? false;
     $currentRouteName = $isArchivedPage ? 'error-lens.archived.index' : 'error-lens.index';
     $viewRouteName = $isArchivedPage ? 'error-lens.archived.view' : 'error-lens.view';
-    $heading = $isArchivedPage ? 'Archived List' : 'Dashboard';
+    
+    $heading = 'Dashboard';
+    if ($isArchivedPage) {
+        $heading = 'Archived List';
+    }
+    else if ($isRelevantPage) {
+        $heading = 'Relevant Errors';
+    }
 @endphp
 <h2 class="my-4">{{ $heading }}</h2>
 <div class="row">
+    @if ( ! $isRelevantPage)
     <div class="col-sm-12">
         <div class="row mb-4">
             <div class="col-lg-3">
@@ -102,6 +111,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     <div class="col-sm-12">
         <x-error-lens::alert-message :customMessage="$errors->all()"/>

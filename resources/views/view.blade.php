@@ -1,6 +1,10 @@
 @extends('error-lens::layouts.app')
 
 @section('content')
+@php
+    $isArchivedPage = (request()->route()->getName() === 'error-lens.archived.view');
+    $listingPageViewRoute = $isArchivedPage ? 'error-lens.archived.index' : 'error-lens.index';
+@endphp
     <div class="row" id="full-view">
         <div class="col-sm-12">
             <div id="sticky-wrap" class="my-4 d-flex flex-column full-log-view">
@@ -75,6 +79,24 @@
                                     <span class="form-control">{{ $errorLog->previous_url }}</span>
                                 </div>
 
+                                @if($relevantErrors)
+                                <div class="mb-3 input_custom">
+                                    <label class="fw-bold">
+                                        Relevant Errors
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                            fill="currentColor" class="bi bi-exclamation-circle-fill cursor-pointer"
+                                            viewBox="0 0 16 16" data-bs-toggle="tooltip" data-bs-placement="top"
+                                            title="Same error for different users.">
+                                            <path
+                                                d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4m.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2" />
+                                        </svg>
+                                    </label>
+                                    <span class="form-control">
+                                        <a href="{{ route($listingPageViewRoute, ['view' => 'current-year', 'relevant' => $errorLog->id]) }}">{{ $relevantErrors }}</a>
+                                    </span>
+                                </div>
+                                @endif
+
                                 <div class="mb-3 input_custom">
                                     <label class="fw-bold">Was user logged-in?</label>
                                     <div class="form-control">
@@ -146,6 +168,20 @@
             </div>
         </div>
     </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Apply bootstrap tooltip for the elements
+            var toolTipElements = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+            if (toolTipElements.length) {
+                toolTipElements.forEach(function(item) {
+                    new bootstrap.Tooltip(item, {
+                        boundary: document.body
+                    })
+                })
+            }
+        });
+    </script>
 
     <link rel="stylesheet" href="{{ asset('vendor/error-lens/assets/css/highlight.min.css') }}" />
 
