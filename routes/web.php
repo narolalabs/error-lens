@@ -27,7 +27,7 @@ Route::group(['prefix' => 'error-lens', 'as' => 'error-lens.', 'middleware' => [
     Route::group(['prefix' => 'archived', 'as' => 'archived.'], function() {
         Route::get('/', [ArchivedErrorLogController::class, 'index'])->name('index');
         Route::get('view/{id}', [ArchivedErrorLogController::class, 'view'])->name('view');
-        Route::get('delete-selected', [ArchivedErrorLogController::class, 'destroy'])->name('delete-selected');
+        Route::post('delete-selected', [ArchivedErrorLogController::class, 'destroy'])->name('delete-selected');
     });
     
 });

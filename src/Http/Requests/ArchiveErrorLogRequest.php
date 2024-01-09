@@ -14,7 +14,7 @@ class ArchiveErrorLogRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'archiveErrorId' => explode(',', $this->archiveErrorId)
+            'errorId' => explode(',', $this->errorId)
         ]);
     }
 
@@ -36,16 +36,16 @@ class ArchiveErrorLogRequest extends FormRequest
     public function rules()
     {
         return [
-            'archiveErrorId' => 'required|array|exists:error_logs,id'
+            'errorId' => 'required|array|exists:error_logs,id'
         ];
     }
 
     public function messages()
     {
         return [
-            'archiveErrorId.required' => 'Please select at least one error log to move archive list.',
-            'archiveErrorId.array' => 'Please select at least one error log to move archive list.',
-            'archiveErrorId.exists' => 'The selected error log/logs do not exist in the database. Please reload the page and try again later.',
+            'errorId.required' => 'Please select at least one error log to move archive list.',
+            'errorId.array' => 'Please select at least one error log to move archive list.',
+            'errorId.exists' => 'The selected error log/logs do not exist in the database. Please reload the page and try again later.',
         ];
     }
 
@@ -56,9 +56,9 @@ class ArchiveErrorLogRequest extends FormRequest
      */
     protected function passedValidation()
     {
-        if ($this->has('archiveErrorId')) {
+        if ($this->has('errorId')) {
             $this->merge([
-                'archiveErrorId' => implode(',', $this->archiveErrorId)
+                'errorId' => implode(',', $this->errorId)
             ]);
         }
     }

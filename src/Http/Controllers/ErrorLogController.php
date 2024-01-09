@@ -187,7 +187,7 @@ class ErrorLogController extends Controller
 
     public function archive_selected(ArchiveErrorLogRequest $request)
     {
-        $errorLogIds = explode(',', $request->archiveErrorId);
+        $errorLogIds = explode(',', $request->errorId);
         $errorLogs = ErrorLog::whereIn('id', $errorLogIds)->each(function ($errorLog) {
             //getting the record one by one that want to be copied
             //copy them using replicate and setting destination table by setTable()

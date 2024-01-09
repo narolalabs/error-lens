@@ -117,7 +117,7 @@
                             <form action="{{ route('error-lens.archived') }}" method="POST" id="archivedErrorForm" class="d-none">
                                 @csrf
                                 @method('POST')
-                                <input type="hidden" name="errorId" id="erorId">
+                                <input type="hidden" name="errorId" id="errorId">
                                 <div class="align-middle">
                                     <b><span id="selectedCheckboxCount">0</span> Selected</b>
                                     <button class="btn btn-primary ms-2">Archive</button>
@@ -128,8 +128,8 @@
                                 @method('POST')
                                 <input type="hidden" name="archiveErrorId" id="archiveErrorId">
                                 <div class="align-middle">
-                                    <b><span id="selectedCheckboxCount">0</span> Selected</b>
-                                    <button class="btn btn-primary ms-2">Archive</button>
+                                    <b><span id="selectedArchivedCheckboxCount">0</span> Selected</b>
+                                    <button class="btn btn-primary ms-2">Delete</button>
                                 </div>
                             </form>
                         </div>
@@ -190,11 +190,17 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        var isArchivedPage = @if($isArchivedPage) true @else false @endif;
         var selectAll = document.getElementById('selectAll');
         var singleCheckboxes = document.querySelectorAll('.singleCheckbox');
-        var selectedCheckboxCount = document.getElementById('selectedCheckboxCount');
+        // Archive error form parameters
         var archivedErrorForm = document.getElementById('archivedErrorForm');
+        var selectedCheckboxCount = document.getElementById('selectedCheckboxCount');
         var errorId = document.getElementById('errorId');
+        // Archived error delete form parameteres
+        var archivedErrorDeleteForm = document.getElementById('archivedErrorDeleteForm');
+        var selectedArchivedCheckboxCount = document.getElementById('selectedArchivedCheckboxCount');
+        var archiveErrorId = document.getElementById('archiveErrorId');
         
         // While user click on select all checkbox then checked-unchecked all checkboxes
         selectAll.addEventListener('change', function (event) {
@@ -203,16 +209,15 @@
                     singleCheckboxes[key].checked = event.target.checked;
                 }
             }
-
-            hideShowArchiveErrorFrom();
+            (isArchivedPage) ? hideShowArchivedErrorDeleteFrom() : hideShowArchiveErrorFrom();
         });
 
         // While single checkbox checked, based on that, check-uncheck selectall checkbox
         singleCheckboxes.forEach(function (singleCheckbox) {
             singleCheckbox.addEventListener('change', function (event) {
-                selectAll.checked = ! document.querySelectorAll('.singleCheckbox:not(:checked)').length
+                selectAll.checked = ! document.querySelectorAll('.singleCheckbox:not(:checked)').length;
                 
-                hideShowArchiveErrorFrom();
+                (isArchivedPage) ? hideShowArchivedErrorDeleteFrom() : hideShowArchiveErrorFrom();
             });
         });
 
@@ -245,6 +250,25 @@
                 checkboxIds.push(checkbox.value);
             });
             errorId.value = checkboxIds.toString();
+        }
+
+        // Hide show archive error delete form
+        function hideShowArchivedErrorDeleteFrom() {
+            let checkedCheckboxes = document.querySelectorAll('.singleCheckbox:checked');
+            archivedErrorDeleteForm.classList.add('d-none');
+
+            // Display selected checkbox counting
+            if (checkedCheckboxes.length) {
+                archivedErrorDeleteForm.classList.remove('d-none');
+                selectedArchivedCheckboxCount.innerText = checkedCheckboxes.length;
+            }
+
+            // Set the checkbox value in archive form
+            let checkboxIds = [];
+            checkedCheckboxes.forEach(function (checkbox) {
+                checkboxIds.push(checkbox.value);
+            });
+            archiveErrorId.value = checkboxIds.toString();
         }
     });
 </script>
