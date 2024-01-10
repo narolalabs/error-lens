@@ -19,7 +19,7 @@
 <div class="row">
     @if ( ! $isRelevantPage)
     <div class="col-sm-12">
-        <div class="row mb-4">
+        <div class="row mb-3">
             <div class="col-lg-3">
                 <div class="card card_block">
                     <div class="card-header text-uppercase border-0">
