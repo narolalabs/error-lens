@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('error_logs', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('url', 191);
+            $table->integer('status')->default('0');
             $table->json('request_data')->nullable();
             $table->json('headers')->nullable();
             $table->text('message');
@@ -21,8 +22,10 @@ return new class extends Migration
             $table->json('trace')->nullable();
             $table->string('email', 100)->nullable();
             $table->string('ip_address', 30)->nullable();
+            $table->string('guard', 30)->nullable();
             $table->string('browser', 30)->nullable();
             $table->string('previous_url', 191)->nullable();
+            $table->integer('repeated')->default('1');
             $table->timestamps();
         });
 
@@ -30,6 +33,24 @@ return new class extends Migration
             $table->id();
             $table->string('key', 191)->unique();
             $table->text('value');
+            $table->timestamps();
+        });
+
+        Schema::create('error_logs_archived', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('url', 191);
+            $table->integer('status')->default('0');
+            $table->json('request_data')->nullable();
+            $table->json('headers')->nullable();
+            $table->text('message');
+            $table->json('error')->nullable();
+            $table->json('trace')->nullable();
+            $table->string('email', 100)->nullable();
+            $table->string('ip_address', 30)->nullable();
+            $table->string('guard', 30)->nullable();
+            $table->string('browser', 30)->nullable();
+            $table->string('previous_url', 191)->nullable();
+            $table->integer('repeated')->default('1');
             $table->timestamps();
         });
     }

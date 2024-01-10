@@ -78,6 +78,13 @@ To view all the error logs, visit the `https://domain.com/error-lens`
 
 ![Error Lens - Full page error view](https://github.com/narolalabs/error-lens/assets/143481636/cf078de5-1435-4896-9c78-c2a5336f4e17)
 
+## Reset Authentication Detail
+If you have forgotten your authentication details, you can reset them using the following command and set a new username and password.
+
+```bash
+php artisan error-lens:authentication
+```
+
 ## Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.

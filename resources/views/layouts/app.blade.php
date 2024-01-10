@@ -9,6 +9,7 @@
         <link rel="icon" type="image/x-icon" href="{{ asset('vendor/error-lens/assets/img/favicon.png') }}" />
         
         <link rel="stylesheet" href="{{ asset('vendor/error-lens/assets/css/bootstrap.min.css') }}" />
+        @yield('style')
         <link rel="stylesheet" href="{{ asset('vendor/error-lens/assets/css/style.css') }}" />
     </head>
     <body>
@@ -23,11 +24,22 @@
                 </button>
 
                 <div class="collapse navbar-collapse justify-content-end" id="navbarResponsive">
+                    @php
+                        function activeMenu($routeName) {
+                            return request()->route()->getName() === $routeName ? 'active' : '';
+                        }
+                     @endphp
                     <ul class="navbar-nav ml-auto">
-                        <li class="nav-item">
+                        <li class="nav-item {{ activeMenu('error-lens.index') }}">
+                            <a class="nav-link text-white" href="{{ route('error-lens.index') }}">Dashboard</a>
+                        </li>
+                        <li class="nav-item {{ activeMenu('error-lens.archived.index') }}">
+                            <a class="nav-link text-white" href="{{ route('error-lens.archived.index') }}">Archived</a>
+                        </li>
+                        <li class="nav-item {{ activeMenu('error-lens.config') }}">
                             <a class="nav-link text-white" href="{{ route('error-lens.config') }}">Config</a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item {{ activeMenu('error-lens.clear') }}">
                             <form action="{{ route('error-lens.clear') }}" method="post">
                                 @csrf
                                 <a class="nav-link text-white" id="clear-logs" href="{{ route('error-lens.clear') }}">Clear Logs</a>
@@ -45,6 +57,7 @@
         <script src="{{ asset('vendor/error-lens/assets/js/jquery.min.js') }}"></script>
         <script src="{{ asset('vendor/error-lens/assets/js/bootstrap.bundle.min.js') }}"></script>
 
+        @yield('script')
         <script src="{{ asset('vendor/error-lens/assets/js/common.min.js') }}"></script>
         <script src="{{ asset('vendor/error-lens/assets/js/log.min.js') }}"></script>
     </body>

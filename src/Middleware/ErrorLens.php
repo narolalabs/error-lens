@@ -40,9 +40,38 @@ class ErrorLens
 
         $response = $next($request);
         $exception = $response->exception;
-        if (config('app.env') == 'production' && !config('app.debug')) {
+
+        $exceptionStatusCode = null;
+        if ($exception) {
+            $exceptionStatusCode = ($exception->getCode() !== 0) ? $exception->getCode() : 500;
+        }
+
+        $trackErrorOrNot = false;
+        if ($exceptionStatusCode && isset($errorLogConfigs['error-lens.error_preferences.severityLevel'])) {
+            // Track whether a severity level is set for error tracking.
+            $trackErrorOrNot = strpos($errorLogConfigs['error-lens.error_preferences.severityLevel'], substr($exceptionStatusCode, 0, 1).'xx') ? true : false;
+
+            if ($trackErrorOrNot && isset($errorLogConfigs['error-lens.error_preferences.severityLevel'])) {
+                // If severity is set but the error code is added to the skip error code list, then it should be ignored.
+                $trackErrorOrNot = ! strpos($errorLogConfigs['error-lens.error_preferences.skipErrorCodes'], $exceptionStatusCode) ? true : false;
+            }
+        }
+        
+        // Log errors when the environment is production, debug mode is set to false, and error tracking is configured.
+        if (config('app.env') == 'production' && !config('app.debug') && $trackErrorOrNot) {
             if ($exception) {
                 try {
+
+                    // Get all the guard name which are in the system
+                    $guards = array_keys(config('auth.guards')) ;
+                    // Set the loggedin guard name
+                    $guardName = null;
+                    foreach($guards as $guard){
+                        if(auth()->guard($guard)->check()){
+                            $guardName = $guard;
+                        }
+                    }
+
                     // Replace the confidential string with stars (*)
                     $confidetialFields = explode(',', config('error-lens.security.confidentialFieldNames'));
                     $requestedData = collect($request->all())->map(function ($value, $key) use ($confidetialFields) {
@@ -54,7 +83,7 @@ class ErrorLens
                             'message' => $exception->getMessage(),
                             'file' => $exception->getFile(),
                             'line' => $exception->getLine(),
-                            'code' => ($exception->getCode() !== 0) ? $exception->getCode() : 500,
+                            'code' => $exceptionStatusCode,
                             // 'previous' => $exception->getPrevious(),
                         ],
                     ];
@@ -83,10 +112,11 @@ class ErrorLens
                         'message' => $message,
                         'error' => $error,
                         'trace' => $exception->getTrace(),
-                        'email' => $request->user() ? $request->user()->email : null,
+                        'email' => $guardName && auth()->guard($guardName)->check() ? auth()->guard($guardName)->user()->email : null,
                         'ip_address' => $request->ip(),
                         'previous_url' => url()->previous(),
                         'browser' => "$browser - v"  . Agent::version($browser),
+                        'guard' => $guardName
                     ]);
                 } catch (\Exception $e) {
                 }

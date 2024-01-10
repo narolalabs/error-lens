@@ -1,7 +1,9 @@
-@props([ 'showHeader' => true ])
+@props(['showHeader' => true])
 <div {{ $attributes->merge(['class' => 'card card_custom']) }}>
-    @if($showHeader)
-        <h4 class="card-header">Website Information</h4>
+    @if ($showHeader)
+        <div class="card-header">
+            <h4>Website Information</h4>
+        </div>
     @endif
     <div class="card-body">
         <div class="mb-3 input_custom">
