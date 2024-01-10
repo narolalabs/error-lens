@@ -1,5 +1,7 @@
 <div class="card card_custom">
-    <h4 class="card-header">Error Preferences</h4>
+    <div class="card-header">
+        <h4>Error Preferences</h4>
+    </div>
     <div class="custom_table p-4">
         <div class="table-responsive">
             <form action="{{ route('error-lens.config.store') }}" method="post">
@@ -72,7 +74,7 @@
                         <label for="logDeleteAfterDays">Log Delete After:</label>
                         <div class="input-group">
                             <input type="text" class="form-control" placeholder="30" {{ old('logDeleteAfterDays', @$configurations['error_preferences.logDeleteAfterDays']) }} name="logDeleteAfterDays" value="{{ old('logDeleteAfterDays', @$configurations['error_preferences.logDeleteAfterDays']) }}">
-                            <span class="input-group-text" id="logDeleteAfterDays">Days</span>
+                            <span class="input-group-text bg-primary text-white" id="logDeleteAfterDays">Days</span>
                         </div>
                         <small class="text-danger">
                             {{ $errors->first('logDeleteAfterDays') }}
@@ -112,7 +114,7 @@
                         <div class="input-group">
                             <input type="text" class="form-control" placeholder="30"
                                 aria-label="30" aria-describedby="showRelatedErrorsOfDays" name="showRelatedErrorsOfDays" value="{{ old('showRelatedErrorsOfDays', @$configurations['error_preferences.showRelatedErrorsOfDays']) }}">
-                            <span class="input-group-text" id="showRelatedErrorsOfDays">Days</span>
+                            <span class="input-group-text bg-primary text-white" id="showRelatedErrorsOfDays">Days</span>
                         </div>
                         <small class="text-danger">
                             {{ $errors->first('showRelatedErrorsOfDays') }}

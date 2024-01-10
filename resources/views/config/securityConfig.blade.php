@@ -1,5 +1,7 @@
 <div class="card card_custom">
-    <h4 class="card-header">Security</h4>
+    <div class="card-header">
+        <h4>Security</h4>
+    </div>
     <div class="custom_table p-4">
         <div class="table-responsive">
             <form action="{{ route('error-lens.config.store') }}" method="post">

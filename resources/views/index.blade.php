@@ -121,8 +121,8 @@
         <div class="row mb-3">
             <div class="col-12">
                 <div class="card card_custom">
-                    <h4 class="card-header">{{ $activeError }}</h4>
-                    <div class="custom_table p-4">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <h4>{{ $activeError }}</h4>
                         <div>
                             <form action="{{ route('error-lens.archived') }}" method="POST" id="archivedErrorForm" class="d-none">
                                 @csrf
@@ -143,14 +143,18 @@
                                 </div>
                             </form>
                         </div>
+                    </div>
+                    <div class="custom_table p-4">
                         <div class="row">
-                            <div class="col-md-12">
+                            <div class="col-md-12 col-lg-8 col-xl-5 ms-auto">
                                 <form action="" method="POST" id="searchErrorForm">
                                     @csrf
                                     @method('POST')
                                     <div class="input-group mb-3">
                                         <input type="text" class="form-control" placeholder="Search error" aria-label="Search error" aria-describedby="searchErrorButton" name="searchErrorInput" id="searchErrorInput">
-                                        <button class="btn btn-outline-secondary" type="submit" id="searchErrorButton">Button</button>
+                                        <button class="btn btn-primary d-inline-flex align-items-center" type="submit" id="searchErrorButton">
+                                            <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 512 512"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>
+                                        </button>
                                     </div>
                                 </form>
                             </div>
