@@ -47,6 +47,11 @@ class ErrorLensServiceProvider extends PackageServiceProvider
                 ErrorLensCommand::class,
                 AuthCommand::class,
             ]);
+
+            // publish seeder using command
+            $this->publishes([
+                __DIR__.'/../database/seeders' => database_path('seeders'),
+            ], 'error-lens-seeds');
         }
     }
 }

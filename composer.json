@@ -58,13 +58,15 @@
             "@php artisan vendor:publish --tag=error-lens-migrations",
             "@php artisan vendor:publish --tag=error-lens-assets",
             "@php artisan vendor:publish --tag=error-lens-views",
-            "@php artisan vendor:publish --tag=error-lens-config"
+            "@php artisan vendor:publish --tag=error-lens-config",
+            "@php artisan vendor:publish --tag=error-lens-seeds"
         ],
         "post-update-cmd": [
             "@php artisan vendor:publish --tag=error-lens-migrations",
             "@php artisan vendor:publish --tag=error-lens-assets",
             "@php artisan vendor:publish --tag=error-lens-views",
-            "@php artisan vendor:publish --tag=error-lens-config"
+            "@php artisan vendor:publish --tag=error-lens-config",
+            "@php artisan vendor:publish --tag=error-lens-seeds"
         ]
     },
     "config": {
