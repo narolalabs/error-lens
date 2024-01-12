@@ -16,9 +16,7 @@ class SecurityConfigRequest extends FormRequest
         if ($this->type == 'error_preferences') {
             $this->merge([
                 'autoDeleteLog' => ($this->autoDeleteLog) ? '1' : '0',
-                'showRelatedErrors' => ($this->showRelatedErrors) ? '1' : '0',
-                'logDeleteAfterDays' => ($this->logDeleteAfterDays) ?? '1',
-                'showRelatedErrorsOfDays' => ($this->showRelatedErrorsOfDays) ?? '1',
+                'showRelatedErrors' => ($this->showRelatedErrors) ? '1' : '0'
             ]);
         }
         else if ($this->type == 'security') {
