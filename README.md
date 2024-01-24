@@ -20,35 +20,21 @@ You can install the package via composer:
 composer require narolalabs/error-lens
 ```
 
-You can publish and run the migrations with:
-
-```bash
-php artisan vendor:publish --tag="error-lens-migrations"
-```
-
 Run migration with:
 ```bash
 php artisan migrate
 ```
 
-You can publish the assets file with:
+To set the necessary configuration, please run the following command.
 
 ```bash
-php artisan vendor:publish --tag="error-lens-assets"
+php artisan db:seed --class=ErrorLensConfigurationSeeder
 ```
 
-This is the contents of the published assets file in the `public/vendors/error-lens`.
-
-Optionally, you can publish the views using
+If you wish to protect against unauthorized access, you can set/reset the username and password for authentication.
 
 ```bash
-php artisan vendor:publish --tag="error-lens-views"
-```
-
-You can also publish the configuration to set it according to your preferences. (optional)
-
-```bash
-php artisan vendor:publish --tag="error-lens-config"
+php artisan error-lens:authentication
 ```
 
 Register `ErrorLens` middleware in your `app/Http/Kernel.php`
@@ -70,6 +56,7 @@ After changing the configuration, make sure you clear the config.
 php artisan config:clear
 ```
 
+
 To view all the error logs, visit the `https://domain.com/error-lens`
 
 ![Error Lens - Dashbaord](https://github.com/narolalabs/error-lens/assets/143481636/54c1c0f0-a988-4754-9631-981bd485464e)
@@ -78,12 +65,6 @@ To view all the error logs, visit the `https://domain.com/error-lens`
 
 ![Error Lens - Full page error view](https://github.com/narolalabs/error-lens/assets/143481636/cf078de5-1435-4896-9c78-c2a5336f4e17)
 
-## Reset Authentication Detail
-If you have forgotten your authentication details, you can reset them using the following command and set a new username and password.
-
-```bash
-php artisan error-lens:authentication
-```
 
 ## Changelog
 
