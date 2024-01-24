@@ -1,3 +1,6 @@
+@php
+    $customMessage = isset($customMessage) ? $customMessage : null;
+@endphp
 @if(session('success') || session('error') || (isset($customMessage) && collect($customMessage)->count()))
 <div class="row">
     <div class="col-md-12">

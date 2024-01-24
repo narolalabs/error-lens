@@ -41,6 +41,9 @@ class AuthCommand extends Command
 
             return self::SUCCESS;
         }
+
+        $errorMessage = isset($storeCredentials[1]) ? $storeCredentials[1] : 'Something went wrong. Please try after some time.';
+        $this->error($errorMessage);
         return false;
     }
 

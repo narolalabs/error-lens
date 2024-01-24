@@ -23,7 +23,7 @@ class HttpBasicAuth
             $validCredentials = Cache::get('authenticationDetails');
         } else {
             // If configuration data is not in the cache, then pick from database
-            $validCredentials = $this->configurationService->fetchConfigurationsDetail(['authenticate.username', 'authenticate.password']);
+            $validCredentials = $this->configurationService->fetchAuthenticationDetails();
             Cache::put('authenticationDetails', $validCredentials, now()->addWeek(1));
         }
 
@@ -34,11 +34,11 @@ class HttpBasicAuth
         // using the command "php artisan error-lens:authentication"
         if (
             (
-                isset($validCredentials['authenticate.username']) &&
-                isset($validCredentials['authenticate.password'])
+                isset($validCredentials['username']) &&
+                isset($validCredentials['password'])
             ) && (
-                $validCredentials['authenticate.username'] != $user ||
-                !Hash::check($password, $validCredentials['authenticate.password'])
+                $validCredentials['username'] != $user ||
+                !Hash::check($password, $validCredentials['password'])
             )
         ) {
             $headers = ['WWW-Authenticate' => 'Basic'];
