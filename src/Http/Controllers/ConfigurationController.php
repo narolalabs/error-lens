@@ -39,8 +39,11 @@ class ConfigurationController extends Controller
     public function config_store(SecurityConfigRequest $request)
     {
         if ($request->type == 'error_preferences') {
-            $data = collect($request->all())->only(['autoDeleteLog', 'logDeleteAfterDays', 'showRelatedErrors', 'showRelatedErrorsOfDays', 'severityLevel', 'skipErrorCodes']);
-
+            $data = $request->all();
+            $data['logDeleteAfterDays'] = $data['logDeleteAfterDays'] ?? 1;
+            $data['showRelatedErrorsOfDays'] = $data['showRelatedErrorsOfDays'] ?? 1;
+            $data = collect($data)->only(['autoDeleteLog', 'logDeleteAfterDays', 'showRelatedErrors', 'showRelatedErrorsOfDays', 'severityLevel', 'skipErrorCodes']);
+            
             $data = $data->map(function ($value, $key) use ($request) {
                 return [
                     'key' => $request->type . '.' . $key,
