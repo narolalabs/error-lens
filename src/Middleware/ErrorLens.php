@@ -49,7 +49,8 @@ class ErrorLens
         $trackErrorOrNot = false;
         if ($exceptionStatusCode && isset($errorLogConfigs['error-lens.error_preferences.severityLevel'])) {
             // Track whether a severity level is set for error tracking.
-            $trackErrorOrNot = $errorLogConfigs['error-lens.error_preferences.severityLevel'] == substr($exceptionStatusCode, 0, 1) . 'xx';
+            $configServerityLevel = array_map('trim', explode(',', $errorLogConfigs['error-lens.error_preferences.severityLevel']));
+            $trackErrorOrNot = in_array(substr($exceptionStatusCode, 0, 1) . 'xx', $configServerityLevel);
 
             if (
                 $trackErrorOrNot &&
