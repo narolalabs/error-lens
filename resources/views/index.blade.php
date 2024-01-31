@@ -151,7 +151,7 @@
                                     @csrf
                                     @method('POST')
                                     <div class="input-group mb-3">
-                                        <input type="text" class="form-control" placeholder="Search error" aria-label="Search error" aria-describedby="searchErrorButton" name="searchErrorInput" id="searchErrorInput">
+                                        <input type="text" class="form-control" placeholder="Search error" aria-label="Search error" aria-describedby="searchErrorButton" name="searchErrorInput" id="searchErrorInput" value="{{ request()->searchErrorInput }}">
                                         <button class="btn btn-primary d-inline-flex align-items-center" type="submit" id="searchErrorButton">
                                             <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 512 512"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>
                                         </button>
@@ -214,6 +214,8 @@
         searchErrorForm.addEventListener('submit', function (event) {
             event.preventDefault();
 
+            addQueryParams('searchErrorInput', searchErrorInput.value);
+
             // Get form data
             let formData = new FormData(searchErrorForm);
             loadTableData('POST', window.location.href, formData);
@@ -225,6 +227,8 @@
             pageLinks.forEach(pageLink => {
                 pageLink.addEventListener('click', function (event) {
                     event.preventDefault();
+
+                    addQueryParams('page', getQueryParams(event.target.href, 'page'));
 
                     // Get form data
                     let formData = new FormData(searchErrorForm);
@@ -329,6 +333,40 @@
             // Send the request with the form data
             xhr.send(formData);
         }
+
+        // Update the URL with query params
+        function addQueryParams(key, value) {
+            // Get the current URL
+            var currentUrl = window.location.href;
+
+            // Create or update query parameters
+            var queryParams = new URLSearchParams(window.location.search);
+            queryParams.set(key, value);
+
+            // Construct the new URL with updated query parameters
+            var newUrl = currentUrl.split('?')[0] + '?' + queryParams.toString();
+
+            // Use pushState to update the URL without triggering a page reload
+            history.pushState({ path: newUrl }, '', newUrl);
+        }
+
+        // Get value from the URL using query param key
+        function getQueryParams(url, paramName) {
+            // Get the current URL
+            var currentUrl = url;
+
+            // Create a URL object
+            var url = new URL(currentUrl);
+
+            // Get the search params from the URL
+            var queryParams = url.searchParams;
+
+            // Access individual query parameters
+            var paramValue = queryParams.get(paramName);
+
+            return paramValue;
+        }
+
     });
 </script>
 @endsection
