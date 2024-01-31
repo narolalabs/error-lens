@@ -16,7 +16,7 @@ use Narolalabs\ErrorLens\Http\Controllers\ArchivedErrorLogController;
 |
 */
 
-Route::group(['prefix' => 'error-lens', 'as' => 'error-lens.', 'middleware' => ['web', 'basicAuth']], function() {
+Route::group(['prefix' => 'error-lens', 'as' => 'error-lens.', 'middleware' => ['web', 'basicAuth', 'autoRemoveErrorLogs']], function() {
     Route::middleware(['isConfigSet'])->group(function () {
         Route::get('/', [ErrorLogController::class, 'index'])->name('index');
         Route::post('/', [ErrorLogController::class, 'index'])->name('index.search');
