@@ -5,6 +5,7 @@ namespace Narolalabs\ErrorLens;
 use Narolalabs\ErrorLens\Commands\AuthCommand;
 use Narolalabs\ErrorLens\Commands\ErrorLensCommand;
 use Narolalabs\ErrorLens\Middleware\HttpBasicAuth;
+use Narolalabs\ErrorLens\Middleware\AutoRemoveErrorLogs;
 use Illuminate\Pagination\Paginator;
 use Narolalabs\ErrorLens\Middleware\IsConfigSet;
 use Spatie\LaravelPackageTools\Package;
@@ -43,6 +44,7 @@ class ErrorLensServiceProvider extends PackageServiceProvider
         // Register your middleware
         $this->app['router']->aliasMiddleware('basicAuth', HttpBasicAuth::class);
         $this->app['router']->aliasMiddleware('isConfigSet', IsConfigSet::class);
+        $this->app['router']->aliasMiddleware('autoRemoveErrorLogs', AutoRemoveErrorLogs::class);
 
         if ($this->app->runningInConsole()) {
             $this->commands([
