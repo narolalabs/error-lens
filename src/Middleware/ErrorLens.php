@@ -49,11 +49,15 @@ class ErrorLens
         $trackErrorOrNot = false;
         if ($exceptionStatusCode && isset($errorLogConfigs['error-lens.error_preferences.severityLevel'])) {
             // Track whether a severity level is set for error tracking.
-            $trackErrorOrNot = strpos($errorLogConfigs['error-lens.error_preferences.severityLevel'], substr($exceptionStatusCode, 0, 1).'xx') ? true : false;
+            $trackErrorOrNot = $errorLogConfigs['error-lens.error_preferences.severityLevel'] == substr($exceptionStatusCode, 0, 1) . 'xx';
 
-            if ($trackErrorOrNot && isset($errorLogConfigs['error-lens.error_preferences.severityLevel'])) {
+            if (
+                $trackErrorOrNot &&
+                isset($errorLogConfigs['error-lens.error_preferences.severityLevel']) &&
+                isset($errorLogConfigs['error-lens.error_preferences.skipErrorCodes'])
+            ) {
                 // If severity is set but the error code is added to the skip error code list, then it should be ignored.
-                $trackErrorOrNot = ! strpos($errorLogConfigs['error-lens.error_preferences.skipErrorCodes'], $exceptionStatusCode) ? true : false;
+                $trackErrorOrNot = !strpos($errorLogConfigs['error-lens.error_preferences.skipErrorCodes'], $exceptionStatusCode) ? true : false;
             }
         }
         

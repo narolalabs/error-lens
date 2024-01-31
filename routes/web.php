@@ -17,22 +17,23 @@ use Narolalabs\ErrorLens\Http\Controllers\ArchivedErrorLogController;
 */
 
 Route::group(['prefix' => 'error-lens', 'as' => 'error-lens.', 'middleware' => ['web', 'basicAuth']], function() {
-    Route::get('/', [ErrorLogController::class, 'index'])->name('index');
-    Route::post('/', [ErrorLogController::class, 'index'])->name('index.search');
-    Route::get('dashboard', [ErrorLogController::class, 'dashboard'])->name('dashboard');
-    Route::get('view/{id}', [ErrorLogController::class, 'view'])->name('view');
-    Route::post('clear-all', [ErrorLogController::class, 'clear'])->name('clear');
-    Route::post('archive-selected', [ErrorLogController::class, 'archive_selected'])->name('archived');
+    Route::middleware(['isConfigSet'])->group(function () {
+        Route::get('/', [ErrorLogController::class, 'index'])->name('index');
+        Route::post('/', [ErrorLogController::class, 'index'])->name('index.search');
+        Route::get('dashboard', [ErrorLogController::class, 'dashboard'])->name('dashboard');
+        Route::get('view/{id}', [ErrorLogController::class, 'view'])->name('view');
+        Route::post('clear-all', [ErrorLogController::class, 'clear'])->name('clear');
+        Route::post('archive-selected', [ErrorLogController::class, 'archive_selected'])->name('archived');
+
+        Route::group(['prefix' => 'archived', 'as' => 'archived.'], function() {
+            Route::get('/', [ArchivedErrorLogController::class, 'index'])->name('index');
+            Route::post('/', [ArchivedErrorLogController::class, 'index'])->name('index.search');
+            Route::get('view/{id}', [ArchivedErrorLogController::class, 'view'])->name('view');
+            Route::post('delete-selected', [ArchivedErrorLogController::class, 'destroy'])->name('delete-selected');
+        });
+    });
 
     Route::get('config', [ConfigurationController::class, 'config'])->name('config');
     Route::post('config', [ConfigurationController::class, 'config_store'])->name('config.store');
     Route::post('clear-cache', [ConfigurationController::class, 'cache_clear'])->name('config.cache-clear');
-
-    Route::group(['prefix' => 'archived', 'as' => 'archived.'], function() {
-        Route::get('/', [ArchivedErrorLogController::class, 'index'])->name('index');
-        Route::post('/', [ArchivedErrorLogController::class, 'index'])->name('index.search');
-        Route::get('view/{id}', [ArchivedErrorLogController::class, 'view'])->name('view');
-        Route::post('delete-selected', [ArchivedErrorLogController::class, 'destroy'])->name('delete-selected');
-    });
-    
 });

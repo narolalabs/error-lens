@@ -6,6 +6,7 @@ use Narolalabs\ErrorLens\Commands\AuthCommand;
 use Narolalabs\ErrorLens\Commands\ErrorLensCommand;
 use Narolalabs\ErrorLens\Middleware\HttpBasicAuth;
 use Illuminate\Pagination\Paginator;
+use Narolalabs\ErrorLens\Middleware\IsConfigSet;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -36,17 +37,23 @@ class ErrorLensServiceProvider extends PackageServiceProvider
 
     public function register()
     {
-         // Call the parent register method
-         parent::register();
+        // Call the parent register method
+        parent::register();
 
         // Register your middleware
         $this->app['router']->aliasMiddleware('basicAuth', HttpBasicAuth::class);
+        $this->app['router']->aliasMiddleware('isConfigSet', IsConfigSet::class);
 
         if ($this->app->runningInConsole()) {
             $this->commands([
                 ErrorLensCommand::class,
                 AuthCommand::class,
             ]);
+
+            // publish seeder using command
+            $this->publishes([
+                __DIR__.'/../database/seeders' => database_path('seeders'),
+            ], 'error-lens-seeds');
         }
     }
 }

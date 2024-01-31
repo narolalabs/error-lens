@@ -3,27 +3,29 @@
     $fullPageViewRouteName = $isArchivedPage ? 'error-lens.archived.view' : 'error-lens.view';
     $listingPageViewRoute = $isArchivedPage ? 'error-lens.archived.index' : 'error-lens.index';
 @endphp
+<a class="close_btn" type="button" data-bs-dismiss="offcanvas" aria-label="Close">
+    <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 512 512"><path d="M470.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L402.7 256 265.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160zm-352 160l160-160c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0z"></path></svg>
+</a>
 <div class="offcanvas-header flex-column">
     <div class="full-log-view">
         <h6>Error Message:</h6>
         <h3 class="m-0" id="offcanvasRightLabel">{{ $errorLog->message }}</h3>
         <small>
             <span class="fw-bold">Request URL:</span>
-            <span>{{ $errorLog->url }}</span>
+            <span>
+                {{ $errorLog->url }}
+                <a href="{{ route($fullPageViewRouteName, ['id' => $errorLog->id]) }}" target="_blank" title="View in full page" class="ms-1">
+                    <svg fill="#15a4b7" xmlns="http://www.w3.org/2000/svg" height="12" width="12" viewBox="0 0 512 512"><path d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32h82.7L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3V192c0 17.7 14.3 32 32 32s32-14.3 32-32V32c0-17.7-14.3-32-32-32H320zM80 32C35.8 32 0 67.8 0 112V432c0 44.2 35.8 80 80 80H400c44.2 0 80-35.8 80-80V320c0-17.7-14.3-32-32-32s-32 14.3-32 32V432c0 8.8-7.2 16-16 16H80c-8.8 0-16-7.2-16-16V112c0-8.8 7.2-16 16-16H192c17.7 0 32-14.3 32-32s-14.3-32-32-32H80z"></path></svg>
+                </a>
+            </span>
         </small>
-
-        <div class="small">
-            <a href="{{ route($fullPageViewRouteName, ['id' => $errorLog->id]) }}" target="_blank" title="Full View" class="text-decoration-none">
-                <span>View in full screen</span>
-            </a>
-        </div>
     </div>
 </div>
 <div class="offcanvas-body">
     <div class="row">
         <div class="col-lg-8">
             @if($errorLog->error)
-                <div class="my-4">
+                <div class="mb-3">
                     <div class="card-body error-panel">
                         <h3>Error:</h3>
                         @foreach( $errorLog->error as $errors )
@@ -42,7 +44,7 @@
                 </div>
             @endif
             
-            <div class="my-4">
+            <div class="mb-3">
                 <div class="card-body error-panel">
                     <h3>Request Data:</h3>
                     @if($errorLog->request_data)
