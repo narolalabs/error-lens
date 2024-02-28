@@ -2,38 +2,50 @@
 
 namespace Narolalabs\ErrorLens;
 
+use Illuminate\Support\ServiceProvider;
 use Narolalabs\ErrorLens\Commands\AuthCommand;
 use Narolalabs\ErrorLens\Commands\ErrorLensCommand;
 use Narolalabs\ErrorLens\Middleware\HttpBasicAuth;
 use Narolalabs\ErrorLens\Middleware\AutoRemoveErrorLogs;
 use Illuminate\Pagination\Paginator;
 use Narolalabs\ErrorLens\Middleware\IsConfigSet;
-use Spatie\LaravelPackageTools\Package;
-use Spatie\LaravelPackageTools\PackageServiceProvider;
 
-class ErrorLensServiceProvider extends PackageServiceProvider
+class ErrorLensServiceProvider extends ServiceProvider
 {
-    public function configurePackage(Package $package): void
-    {
-        /*
-         * This class is a Package Service Provider
-         *
-         * More info: https://github.com/spatie/laravel-package-tools
-         */
-        $package
-            ->name('error-lens')
-            ->hasConfigFile('error-lens')
-            ->hasViews('error-lens')
-            ->hasAssets()
-            ->hasRoute('web')
-            ->hasMigration('create_error_lens_table');
-    }
-
+    /**
+     * Bootstrap services.
+     *
+     * @return void
+     */
     public function boot()
     {
-        parent::boot();
+        // Publish migration
+        $this->publishes([
+            __DIR__.'/../database/migrations/create_error_lens_table.php.stub' => database_path('migrations/'.date('Y_m_d_His', time()).'_create_error_lens_table.php'),
+        ], 'error-lens-migrations');
 
-        Paginator::useBootstrap();
+        // Publish assets
+        $this->publishes([
+            __DIR__.'/../resources/dist' => public_path('vendor/error-lens')
+        ], 'error-lens-assets');
+
+        // Publish view
+        $this->publishes([
+            __DIR__.'/../resources/views' => resource_path('views/vendor/error-lens'),
+        ], 'error-lens-views');
+
+        // Publish config
+        $this->publishes([
+            __DIR__.'/../config' => config_path(),
+        ], 'error-lens-config');
+
+        // publish seeder using command
+        $this->publishes([
+            __DIR__.'/../database/seeders' => database_path('seeders'),
+        ], 'error-lens-seeds');
+        
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'error-lens');
+        $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
     }
 
     public function register()
@@ -51,11 +63,6 @@ class ErrorLensServiceProvider extends PackageServiceProvider
                 ErrorLensCommand::class,
                 AuthCommand::class,
             ]);
-
-            // publish seeder using command
-            $this->publishes([
-                __DIR__.'/../database/seeders' => database_path('seeders'),
-            ], 'error-lens-seeds');
         }
     }
 }

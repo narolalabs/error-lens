@@ -17,8 +17,6 @@
     ],
     "require": {
         "php": "^7.3|^8.0|^8.1",
-        "spatie/laravel-package-tools": "^1.10.0|^1.14.0",
-        "illuminate/contracts": "^8.0|^10.*",
         "jenssegers/agent": "^2.6",
         "ramsey/uuid": "^4.2|^4.7"
     },
@@ -57,15 +55,7 @@
         "analyse": "vendor/bin/phpstan analyse",
         "test": "vendor/bin/pest",
         "test-coverage": "vendor/bin/pest --coverage",
-        "format": "vendor/bin/pint",
-        "post-install-cmd": [
-            "@php artisan vendor:publish --tag=error-lens-migrations",
-            "@php artisan vendor:publish --tag=error-lens-assets"
-        ],
-        "post-update-cmd": [
-            "@php artisan vendor:publish --tag=error-lens-migrations",
-            "@php artisan vendor:publish --tag=error-lens-assets"
-        ]
+        "format": "vendor/bin/pint"
     },
     "config": {
         "sort-packages": true,

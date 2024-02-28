@@ -4,13 +4,13 @@ namespace Narolalabs\ErrorLens\Traits;
 
 trait ErrorLisingConfigTrait
 {
-    protected static array $queryString = [
+    protected static $queryString = [
         'today', 'yesterday', 'last-month', 'current-year', 'relevant'
     ];
 
-    protected static string $defaultFilter = 'today';
+    protected static $defaultFilter = 'today';
 
-    protected static int $perPageRecordLenght = 20;
+    protected static $perPageRecordLenght = 20;
 
     protected function getDefaultFilter(): string
     {
