@@ -3,6 +3,7 @@
 namespace Narolalabs\ErrorLens\Middleware;
 
 use Closure;
+use Illuminate\Support\Facades\Session;
 use Narolalabs\ErrorLens\Services\ConfigurationService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cache;
@@ -34,6 +35,13 @@ class IsConfigSet
             return redirect()->route('error-lens.config')->withError('Please set up the required configuration before initializing the tracking of error logs.');
         }
         
+        // Check that recommended settings are set in environment or not.
+        if (strtolower(config('app.env') ?? '') !== 'production') {
+            Session::flash('error', "Set your system environment to PRODUCTION to track error logs.");
+        }
+        else if (!config('app.debug') && config('app.debug') !== false) {
+            Session::flash('error', "Set your debug environment to FALSE to track error logs.");
+        }
 
         return $next($request);
     }
