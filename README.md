@@ -16,54 +16,52 @@ Laravel   | 8.x, 9.x, 10.x      |
 
 _Please adhere to the following instructions meticulously to successfully complete the installation process._
 
-1. Package Installation **(Required)**
-> ```bash
-> composer require narolalabs/error-lens
-> ```
+Package Installation **(Required)**
+```bash
+composer require narolalabs/error-lens
+```
 
 
-2. Publish and run migration **(Required)**
-> ```bash
-> php artisan vendor:publish --tag="error-lens-migrations"
-> ```
-> ```bash
-> php artisan migrate
-> ```
+Publish and run migration **(Required)**
+```bash
+php artisan vendor:publish --tag="error-lens-migrations"
+```
+```bash
+php artisan migrate
+```
 
-3. Publish Assets **(Required)**
-> ```bash
-> php artisan vendor:publish --tag="error-lens-assets"
-> ```
+Publish Assets **(Required)**
+```bash
+php artisan vendor:publish --tag="error-lens-assets"
+```
 
-4. Register middleware in your `app/Http/Kernel.php` **(Required)**
-> ```php
-> protected $middleware = [
->     // ...
->     \Narolalabs\ErrorLens\Middleware\ErrorLens::class,
-> ];
-> ```
+Register middleware in your `app/Http/Kernel.php` **(Required)**
+```php
+protected $middleware = [
+    // ...
+    \Narolalabs\ErrorLens\Middleware\ErrorLens::class,
+];
+```
 
-5. Finally, set the configuration as `APP_ENV=production` and `APP_DEBUG=false` and clear the cache by below command.
-
-> ```bash
-> php artisan config:clear
-> ```
+Finally, set the configuration as `APP_ENV=production` and `APP_DEBUG=false` and clear the cache by below command.
+```bash
+php artisan config:clear
+```
 
 ## Additional Configurations
 
-_To safeguard against unauthorized access, you can set or reset the username and password for authentication._ **(Highly Recommended but optional)**
-> ```bash
-> php artisan error-lens:authentication
-> ```
+To safeguard against unauthorized access, you can set or reset the username and password for authentication. **(Highly Recommended but optional)**
+```bash
+php artisan error-lens:authentication
+```
 
-_If you are not aware or confused about the setting configurations, you can publish the seeder and run it._ **(Optional)**
-> ```bash
-> php artisan vendor:publish --tag=error-lens-seeds
-> ```
->
-> ```bash
-> php artisan db:seed --class=ErrorLensConfigurationSeeder
-> ```
+If you are not aware or confused about the setting configurations, you can publish the seeder and run it. **(Optional)**
+```bash
+php artisan vendor:publish --tag=error-lens-seeds
+```
+```bash
+php artisan db:seed --class=ErrorLensConfigurationSeeder
+```
 
 ## Usage
 To view all the error logs, visit the `https://domain.com/error-lens`
