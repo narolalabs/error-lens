@@ -139,6 +139,7 @@
                             <div class="card-body">
                                 @if($errorLog->headers)
                                     @foreach( $errorLog->headers as $key => $header )
+                                        @if( ! in_array($key, ['php-auth-pw', 'php-auth-user']))
                                         <div class="mb-3 input_custom">
                                             <label class="fw-bold">{{ $key }}</label>
                                             <div class="form-control">
@@ -150,6 +151,7 @@
                                                 @endforeach
                                             </div>
                                         </div>
+                                        @endif
                                     @endforeach
                                 @else
                                     <div class="input_custom">
