@@ -63,7 +63,7 @@ class ErrorLens
         }
         
         // Log errors when the environment is production, debug mode is set to false, and error tracking is configured.
-        if (config('app.env') == 'production' && !config('app.debug') && $trackErrorOrNot) {
+        if (strtolower(config('app.env') ?? '') == 'production' && !config('app.debug') && $trackErrorOrNot) {
             if ($exception) {
                 try {
 
