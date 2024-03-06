@@ -43,7 +43,14 @@ class ConfigurationController extends Controller
             $data['logDeleteAfterDays'] = $data['logDeleteAfterDays'] ?? 1;
             $data['showRelatedErrorsOfDays'] = $data['showRelatedErrorsOfDays'] ?? 1;
             $data = collect($data)->only(['autoDeleteLog', 'logDeleteAfterDays', 'showRelatedErrors', 'showRelatedErrorsOfDays', 'severityLevel', 'skipErrorCodes']);
-            
+    
+            if ( ! isset($data['skipErrorCodes'])) {
+                $data->put('skipErrorCodes', []);
+            }
+            if ( ! isset($data['severityLevel'])) {
+                $data->put('severityLevel', []);
+            }
+
             $data = $data->map(function ($value, $key) use ($request) {
                 return [
                     'key' => $request->type . '.' . $key,

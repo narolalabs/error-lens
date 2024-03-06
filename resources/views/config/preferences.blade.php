@@ -24,19 +24,19 @@
                     <label for="severityLevel">Severity Level:</label>
                     <select class="form-control severityLevel w-100" multiple="multiple"
                         name="severityLevel[]">
-                        <option value="1xx" {{ in_array('1xx', old('severityLevel', @$configurations['error_preferences.severityLevel'] ?? [])) ? 'selected' : '' }}>
+                        <option value="1xx" {{ @$configurations['error_preferences.severityLevel'] && in_array('1xx', old('severityLevel', @$configurations['error_preferences.severityLevel'] ?? [])) ? 'selected' : '' }}>
                             1xx Informational
                         </option>
-                        <option value="2xx" {{ in_array('2xx', old('severityLevel', @$configurations['error_preferences.severityLevel'] ?? [])) ? 'selected' : '' }}>
+                        <option value="2xx" {{ @$configurations['error_preferences.severityLevel'] && in_array('2xx', old('severityLevel', @$configurations['error_preferences.severityLevel'] ?? [])) ? 'selected' : '' }}>
                             2xx Success
                         </option>
-                        <option value="3xx" {{ in_array('3xx', old('severityLevel', @$configurations['error_preferences.severityLevel'] ?? [])) ? 'selected' : '' }}>
+                        <option value="3xx" {{ @$configurations['error_preferences.severityLevel'] && in_array('3xx', old('severityLevel', @$configurations['error_preferences.severityLevel'] ?? [])) ? 'selected' : '' }}>
                             3xx Redirection
                         </option>
-                        <option value="4xx" {{ in_array('4xx', old('severityLevel', @$configurations['error_preferences.severityLevel'] ?? [])) ? 'selected' : '' }}>
+                        <option value="4xx" {{ @$configurations['error_preferences.severityLevel'] && in_array('4xx', old('severityLevel', @$configurations['error_preferences.severityLevel'] ?? [])) ? 'selected' : '' }}>
                             4xx Client Error
                         </option>
-                        <option value="5xx" {{ in_array('5xx', old('severityLevel', @$configurations['error_preferences.severityLevel'] ?? [])) ? 'selected' : '' }}>
+                        <option value="5xx" {{ @$configurations['error_preferences.severityLevel'] && in_array('5xx', old('severityLevel', @$configurations['error_preferences.severityLevel'] ?? [])) ? 'selected' : '' }}>
                             5xx Server Error
                         </option>
                     </select>
