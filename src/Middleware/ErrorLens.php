@@ -72,68 +72,62 @@ class ErrorLens
             // Log errors when the environment is production, debug mode is set to false, and error tracking is configured.
             if (strtolower(config('app.env') ?? '') == 'production' && !config('app.debug') && $trackErrorOrNot) {
                 if ($exception) {
-                    try {
-
-                        // Get all the guard name which are in the system
-                        $guards = array_keys(config('auth.guards')) ;
-                        // Set the loggedin guard name
-                        $guardName = null;
-                        foreach($guards as $guard){
-                            if(auth()->guard($guard)->check()){
-                                $guardName = $guard;
-                            }
+                    // Get all the guard name which are in the system
+                    $guards = array_keys(config('auth.guards')) ;
+                    // Set the logged-in guard name
+                    $guardName = null;
+                    foreach($guards as $guard){
+                        if(auth()->guard($guard)->check()){
+                            $guardName = $guard;
                         }
-
-                        // Replace the confidential string with stars (*)
-                        $confidentialFields = explode(',', config('error-lens.security.confidentialFieldNames'));
-                        $requestedData = collect($request->all())->map(function ($value, $key) use ($confidentialFields) {
-                            return in_array($key, $confidentialFields) ? Str::padRight('', strlen($value), '*') : $value;
-                        });
-
-                        $error = [
-                            [
-                                'message' => $exception->getMessage(),
-                                'file' => $exception->getFile(),
-                                'line' => $exception->getLine(),
-                                'code' => $exceptionStatusCode,
-                                // 'previous' => $exception->getPrevious(),
-                            ],
-                        ];
-
-                        $error = collect(array_merge($exception->getTrace(), $error))->filter(function ($files) {
-                            if ( isset($files['file']) && !Str::contains($files['file'], 'vendor') &&
-                                !Str::contains($files['file'], 'Middleware\ErrorLens.php') &&
-                                !Str::contains($files['file'], 'public\index.php') &&
-                                !Str::contains($files['file'], 'server.php') &&
-                                !Str::contains($files['file'], 'index.php')
-                            ) {
-                                return $files;
-                            }
-                        })->values()->all();
-
-                        $browser = Agent::browser();
-
-                        $message = !empty($exception->getMessage()) ?
-                            $exception->getMessage()
-                            : $exception->getStatusCode() . ' | Not found - ' . $request->fullUrl();
-
-                        $headers = $this->removeSensitiveHeaderInfo(request()->header());
-                        
-                        ErrorLog::create([
-                            'url' => $request->url(),
-                            'request_data' => config('error-lens.security.storeRequestedData') == '1' ? $requestedData->all() : null,
-                            'headers' => $headers,
-                            'message' => $message,
-                            'error' => $error,
-                            'trace' => $exception->getTrace(),
-                            'email' => $guardName && auth()->guard($guardName)->check() ? auth()->guard($guardName)->user()->email : null,
-                            'ip_address' => $request->ip(),
-                            'previous_url' => url()->previous(),
-                            'browser' => "$browser - v"  . Agent::version($browser),
-                            'guard' => $guardName
-                        ]);
-                    } catch (\Exception $e) {
                     }
+
+                    // Replace the confidential string with stars (*)
+                    $requestedData = $this->markRequestedData($request);
+
+                    $error = [
+                        [
+                            'message' => $exception->getMessage(),
+                            'file' => $exception->getFile(),
+                            'line' => $exception->getLine(),
+                            'code' => $exceptionStatusCode,
+                            'previous' => $exception->getPrevious(),
+                        ],
+                    ];
+
+                    $error = collect(array_merge($exception->getTrace(), $error))->filter(function ($files) {
+                        if ( isset($files['file']) && !Str::contains($files['file'], 'vendor') &&
+                            !Str::contains($files['file'], 'Middleware\ErrorLens.php') &&
+                            !Str::contains($files['file'], 'public\index.php') &&
+                            !Str::contains($files['file'], 'server.php') &&
+                            !Str::contains($files['file'], 'index.php')
+                        ) {
+                            return $files;
+                        }
+                    })->values()->all();
+
+                    $browser = Agent::browser();
+
+                    $message = !empty($exception->getMessage()) ?
+                        $exception->getMessage()
+                        : $exception->getStatusCode() . ' | Not found - ' . $request->fullUrl();
+
+                    $headers = $this->removeSensitiveHeaderInfo(request()->header());
+                    
+                    ErrorLog::create([
+                        'url' => $request->url(),
+                        'request_data' => config('error-lens.security.storeRequestedData') == '1' ? $requestedData->all() : null,
+                        'headers' => $headers,
+                        'message' => $message,
+                        'error' => $error,
+                        'trace' => $exception->getTrace(),
+                        'email' => $guardName && auth()->guard($guardName)->check() ? auth()->guard($guardName)->user()->email : null,
+                        'ip_address' => $request->ip(),
+                        'previous_url' => url()->previous(),
+                        'browser' => "$browser - v"  . Agent::version($browser),
+                        'guard' => $guardName
+                    ]);
+                    
                 }
             }
 
@@ -188,4 +182,14 @@ class ErrorLens
         return $headers;
     }
 
+    private function markRequestedData(Request $request)
+    {
+        // Replace the confidential string with stars (*)
+        $confidentialFields = explode(',', config('error-lens.security.confidentialFieldNames'));
+        $confidentialFields = array_merge($confidentialFields, config('masked-keywords'));
+        $requestedData = collect($request->all())->map(function ($value, $key) use ($confidentialFields) {
+            return in_array($key, $confidentialFields) ? Str::padRight('', strlen($value), '*') : $value;
+        });
+        return $requestedData;
+    }
 }

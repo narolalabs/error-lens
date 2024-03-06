@@ -47,6 +47,7 @@ class ErrorLensServiceProvider extends ServiceProvider
         
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'error-lens');
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
+        $this->mergeConfigFrom(__DIR__.'/../config/masked-keywords.php', 'masked-keywords');
     }
 
     public function register()

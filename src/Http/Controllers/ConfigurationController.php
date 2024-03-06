@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Narolalabs\ErrorLens\Http\Requests\SecurityConfigRequest;
 use Narolalabs\ErrorLens\Models\ErrorLogConfig;
+use Illuminate\Support\Facades\Cache;
 
 class ConfigurationController extends Controller
 {
@@ -61,6 +62,7 @@ class ConfigurationController extends Controller
             $update = ErrorLogConfig::upsert($data, ['key']);
             if ($update) {
                 $redirect = redirect()->back()->withSuccess('Preferences have been updated successfully.');
+                Cache::forget('error-lens');
                 \Artisan::call('cache:clear');
                 \Artisan::call('config:cache');
                 return $redirect;
@@ -79,6 +81,7 @@ class ConfigurationController extends Controller
             $update = ErrorLogConfig::upsert($data, ['key']);
             if ($update) {
                 $redirect = redirect()->back()->withSuccess('Security configurations have been updated successfully.');
+                Cache::forget('error-lens');
                 \Artisan::call('cache:clear');
                 \Artisan::call('config:cache');
                 return $redirect;
@@ -98,6 +101,7 @@ class ConfigurationController extends Controller
         try {
              // [DeveloperNote: while we set this line after cache clear. We getting null value in session.]
             $redirect = redirect()->back()->withSuccess('The cache has been cleared successfully.');
+            Cache::forget('error-lens');
             \Artisan::call('cache:clear');
             \Artisan::call('config:cache');
             return $redirect;

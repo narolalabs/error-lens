@@ -59,6 +59,26 @@ return new class extends Migration
                 $table->timestamps();
             });
         }
+
+        if (Schema::hasTable('error_logs')) {
+            Schema::table('error_logs', function (Blueprint $table) {
+                if ( ! Schema::hasColumn('error_logs', 'status')) {
+                    $table->integer('status')->default('0')->after('browser');
+                }
+                if ( ! Schema::hasColumn('error_logs', 'request_data')) {
+                    $table->json('request_data')->nullable()->after('status');
+                }
+                if ( ! Schema::hasColumn('error_logs', 'guard')) {
+                    $table->string('guard', 30)->nullable()->after('request_data');
+                }
+                if ( ! Schema::hasColumn('error_logs', 'repeated')) {
+                    $table->integer('repeated')->default('1')->after('guard');
+                }
+                if ( ! Schema::hasColumn('error_logs', 'headers')) {
+                    $table->json('headers')->nullable()->after('repeated');
+                }
+            });
+        }
     }
 
     /**
