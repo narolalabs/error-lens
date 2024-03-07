@@ -5,6 +5,7 @@ namespace Narolalabs\ErrorLens;
 use Illuminate\Support\ServiceProvider;
 use Narolalabs\ErrorLens\Commands\AuthCommand;
 use Narolalabs\ErrorLens\Commands\ErrorLensCommand;
+use Narolalabs\ErrorLens\Commands\UpdatePackage;
 use Narolalabs\ErrorLens\Middleware\HttpBasicAuth;
 use Narolalabs\ErrorLens\Middleware\AutoRemoveErrorLogs;
 use Illuminate\Pagination\Paginator;
@@ -46,6 +47,7 @@ class ErrorLensServiceProvider extends ServiceProvider
         
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'error-lens');
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
+        $this->mergeConfigFrom(__DIR__.'/../config/masked-keywords.php', 'masked-keywords');
     }
 
     public function register()
@@ -62,6 +64,7 @@ class ErrorLensServiceProvider extends ServiceProvider
             $this->commands([
                 ErrorLensCommand::class,
                 AuthCommand::class,
+                UpdatePackage::class,
             ]);
         }
     }

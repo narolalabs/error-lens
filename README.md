@@ -32,7 +32,7 @@ php artisan migrate
 
 Publish Assets **(Required)**
 ```bash
-php artisan vendor:publish --tag="error-lens-assets"
+php artisan vendor:publish --tag="error-lens-assets" --force
 ```
 
 Register middleware in your `app/Http/Kernel.php` **(Required)**
