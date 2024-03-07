@@ -4,6 +4,7 @@ namespace Narolalabs\ErrorLens\Commands;
 
 use Illuminate\Console\Command;
 use Narolalabs\ErrorLens\Services\ConfigurationService;
+use Illuminate\Support\Facades\Cache;
 
 class AuthCommand extends Command
 {
@@ -35,6 +36,7 @@ class AuthCommand extends Command
             // clear cache
             $this->call('cache:clear');
             $this->call('config:cache');
+            Cache::forget('error-lens');
 
             // Information statement
             $this->info('ErrorLens authorization credentials have been set successfully.');

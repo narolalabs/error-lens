@@ -48,7 +48,7 @@ class SecurityConfigRequest extends FormRequest
         ];
 
         if ($this->type == 'error_preferences') {
-            $validationRules['severityLevel'] = ['nullable', 'array', Rule::in(['1xx','2xx','3xx','4xx','5xx'])];
+            $validationRules['severityLevel'] = ['required', 'array', Rule::in(['1xx','2xx','3xx','4xx','5xx'])];
             $validationRules['autoDeleteLog'] = ['required', 'in:0,1'];
             $validationRules['logDeleteAfterDays'] = ['required_if:autoDeleteLog,1', 'nullable', 'numeric', 'between:1,365'];
             $validationRules['showRelatedErrors'] = ['required', 'in:0,1'];
@@ -56,7 +56,7 @@ class SecurityConfigRequest extends FormRequest
             $validationRules['skipErrorCodes'] = ['nullable', 'array'];
         }
         else if ($this->type == 'security') {
-            $validationRules['confidentialFieldNames'] = 'required_if:storeRequestedData,==,1|array';
+            $validationRules['confidentialFieldNames'] = 'array';
         }
         return $validationRules;
     }

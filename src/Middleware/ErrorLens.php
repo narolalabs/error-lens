@@ -20,56 +20,61 @@ class ErrorLens
      */
     public function handle(Request $request, Closure $next): Response
     {   
-        // Store configuration in cache
-        if (Cache::get('error-lens')) {
-            $errorLogConfigs = collect($this->flattenArray(Cache::get('error-lens')));
-        }
-        else {
-            // If configuration data is not in the cache, then pick from database
-            $errorLogConfigs = ErrorLogConfig::pluck('value', 'key');
-            Cache::put('error-lens', $errorLogConfigs->toArray(), now()->addMinutes(10));
-        }
-        
-        // Modify the key name of the config
-        $errorLogConfigs = $errorLogConfigs->mapWithKeys(function ($value, $key) {
-            return ['error-lens.' . $key => $value];
-        })->toArray();
-
-        // Update the configuration value
-        config($errorLogConfigs);
-
-        $response = $next($request);
-        $exception = $response->exception;
-
-        $exceptionStatusCode = null;
-        if ($exception) {
-            $exceptionStatusCode = ($exception->getCode() !== 0) ? $exception->getCode() : 500;
-        }
-
-        $trackErrorOrNot = false;
-        if ($exceptionStatusCode && isset($errorLogConfigs['error-lens.error_preferences.severityLevel'])) {
-            // Track whether a severity level is set for error tracking.
-            $configServerityLevel = array_map('trim', explode(',', $errorLogConfigs['error-lens.error_preferences.severityLevel']));
-            $trackErrorOrNot = in_array(substr($exceptionStatusCode, 0, 1) . 'xx', $configServerityLevel);
-
-            if (
-                $trackErrorOrNot &&
-                isset($errorLogConfigs['error-lens.error_preferences.severityLevel']) &&
-                isset($errorLogConfigs['error-lens.error_preferences.skipErrorCodes'])
-            ) {
-                // If severity is set but the error code is added to the skip error code list, then it should be ignored.
-                $trackErrorOrNot = !strpos($errorLogConfigs['error-lens.error_preferences.skipErrorCodes'], $exceptionStatusCode) ? true : false;
+        try {
+            // Store configuration in cache
+            if (Cache::get('error-lens')) {
+                $errorLogConfigs = collect($this->flattenArray(Cache::get('error-lens')));
             }
-        }
-        
-        // Log errors when the environment is production, debug mode is set to false, and error tracking is configured.
-        if (strtolower(config('app.env') ?? '') == 'production' && !config('app.debug') && $trackErrorOrNot) {
-            if ($exception) {
-                try {
+            else {
+                // If configuration data is not in the cache, then pick from database
+                $errorLogConfigs = ErrorLogConfig::pluck('value', 'key');
+                Cache::put('error-lens', $errorLogConfigs->toArray(), now()->addMinutes(10));
+            }
+            
+            // Modify the key name of the config
+            $errorLogConfigs = $errorLogConfigs->mapWithKeys(function ($value, $key) {
+                return ['error-lens.' . $key => $value];
+            })->toArray();
 
+            // Update the configuration value
+            config($errorLogConfigs);
+
+            $response = $next($request);
+            $exception = $response->exception;
+
+            $exceptionStatusCode = null;
+            if ($exception) {
+                if (method_exists($exception, 'getStatusCode')) {
+                    $exceptionStatusCode = $exception->getStatusCode();
+                }
+                else {
+                    $exceptionStatusCode = ($exception->getCode() !== 0) ? $exception->getCode() : 500;
+                }
+            }
+            
+            $trackErrorOrNot = false;
+            if ($exceptionStatusCode && isset($errorLogConfigs['error-lens.error_preferences.severityLevel'])) {
+                // Track whether a severity level is set for error tracking.
+                $configServerityLevel = array_map('trim', explode(',', $errorLogConfigs['error-lens.error_preferences.severityLevel']));
+                $trackErrorOrNot = in_array(substr($exceptionStatusCode, 0, 1) . 'xx', $configServerityLevel);
+
+                if (
+                    $trackErrorOrNot &&
+                    isset($errorLogConfigs['error-lens.error_preferences.severityLevel']) &&
+                    isset($errorLogConfigs['error-lens.error_preferences.skipErrorCodes'])
+                ) {
+                    // If severity is set but the error code is added to the skip error code list, then it should be ignored.
+                    $skipErrorCodes = array_map('trim', explode(',', $errorLogConfigs['error-lens.error_preferences.skipErrorCodes']));
+                    $trackErrorOrNot = !in_array($exceptionStatusCode, $skipErrorCodes);
+                }
+            }
+
+            // Log errors when the environment is production, debug mode is set to false, and error tracking is configured.
+            if (strtolower(config('app.env') ?? '') == 'production' && !config('app.debug') && $trackErrorOrNot) {
+                if ($exception) {
                     // Get all the guard name which are in the system
                     $guards = array_keys(config('auth.guards')) ;
-                    // Set the loggedin guard name
+                    // Set the logged-in guard name
                     $guardName = null;
                     foreach($guards as $guard){
                         if(auth()->guard($guard)->check()){
@@ -78,10 +83,7 @@ class ErrorLens
                     }
 
                     // Replace the confidential string with stars (*)
-                    $confidetialFields = explode(',', config('error-lens.security.confidentialFieldNames'));
-                    $requestedData = collect($request->all())->map(function ($value, $key) use ($confidetialFields) {
-                        return in_array($key, $confidetialFields) ? Str::padRight('', strlen($value), '*') : $value;
-                    });
+                    $requestedData = $this->markRequestedData($request);
 
                     $error = [
                         [
@@ -89,7 +91,7 @@ class ErrorLens
                             'file' => $exception->getFile(),
                             'line' => $exception->getLine(),
                             'code' => $exceptionStatusCode,
-                            // 'previous' => $exception->getPrevious(),
+                            'previous' => $exception->getPrevious(),
                         ],
                     ];
 
@@ -110,10 +112,12 @@ class ErrorLens
                         $exception->getMessage()
                         : $exception->getStatusCode() . ' | Not found - ' . $request->fullUrl();
 
+                    $headers = $this->removeSensitiveHeaderInfo(request()->header());
+                    
                     ErrorLog::create([
                         'url' => $request->url(),
                         'request_data' => config('error-lens.security.storeRequestedData') == '1' ? $requestedData->all() : null,
-                        'headers' => request()->header(),
+                        'headers' => $headers,
                         'message' => $message,
                         'error' => $error,
                         'trace' => $exception->getTrace(),
@@ -123,12 +127,14 @@ class ErrorLens
                         'browser' => "$browser - v"  . Agent::version($browser),
                         'guard' => $guardName
                     ]);
-                } catch (\Exception $e) {
+                    
                 }
             }
-        }
 
-        return $response;
+            return $response;
+        } catch (\Throwable $e) {
+            return $next($request);
+        }
     }
 
     /**
@@ -155,4 +161,35 @@ class ErrorLens
         return $result;
     }
 
+    /**
+     * Remove the sensitive header information from the header
+     *
+     * @param array $headers
+     * @return array
+     */
+    private function removeSensitiveHeaderInfo(array $headers): array
+    {
+        // List of sensitive headers to remove
+        $sensitiveHeaders = ['php-auth-user', 'php-auth-pw', 'Authorization', 'Cookie', 'X-CSRF-Token', 'User-Agent', 'Referer'];
+
+        // Remove sensitive headers
+        foreach ($sensitiveHeaders as $header) {
+            if (isset($headers[$header])) {
+                unset($headers[$header]);
+            }
+        }
+
+        return $headers;
+    }
+
+    private function markRequestedData(Request $request)
+    {
+        // Replace the confidential string with stars (*)
+        $confidentialFields = explode(',', config('error-lens.security.confidentialFieldNames'));
+        $confidentialFields = array_merge($confidentialFields, config('masked-keywords'));
+        $requestedData = collect($request->all())->map(function ($value, $key) use ($confidentialFields) {
+            return in_array($key, $confidentialFields) ? Str::padRight('', strlen($value), '*') : $value;
+        });
+        return $requestedData;
+    }
 }
