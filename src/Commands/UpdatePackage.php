@@ -3,7 +3,7 @@
 namespace Narolalabs\ErrorLens\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Arr;
+use \Illuminate\Support\Facades\File;
 
 class UpdatePackage extends Command
 {
@@ -29,6 +29,12 @@ class UpdatePackage extends Command
 
         // Publish latest assets
         $this->call('vendor:publish', ['--tag' => 'error-lens-assets', '--force' => true]);
+
+        // Remove published view
+        $viewPath = base_path('resources\views\vendor\error-lens');
+        if (File::isDirectory($viewPath)) {
+            File::deleteDirectory($viewPath);
+        }
 
         // Clear the cache
         $this->call('config:clear');

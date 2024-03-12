@@ -30,11 +30,6 @@ class ErrorLensServiceProvider extends ServiceProvider
             __DIR__.'/../resources/dist' => public_path('vendor/error-lens')
         ], 'error-lens-assets');
 
-        // Publish view
-        $this->publishes([
-            __DIR__.'/../resources/views' => resource_path('views/vendor/error-lens'),
-        ], 'error-lens-views');
-
         // Publish config
         $this->publishes([
             __DIR__.'/../config' => config_path(),

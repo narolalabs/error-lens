@@ -55,8 +55,8 @@ class ErrorLens
             $trackErrorOrNot = false;
             if ($exceptionStatusCode && isset($errorLogConfigs['error-lens.error_preferences.severityLevel'])) {
                 // Track whether a severity level is set for error tracking.
-                $configServerityLevel = array_map('trim', explode(',', $errorLogConfigs['error-lens.error_preferences.severityLevel']));
-                $trackErrorOrNot = in_array(substr($exceptionStatusCode, 0, 1) . 'xx', $configServerityLevel);
+                $configSeverityLevel = array_map('trim', explode(',', $errorLogConfigs['error-lens.error_preferences.severityLevel']));
+                $trackErrorOrNot = in_array(substr($exceptionStatusCode, 0, 1) . 'xx', $configSeverityLevel);
 
                 if (
                     $trackErrorOrNot &&
@@ -113,14 +113,16 @@ class ErrorLens
                         : $exception->getStatusCode() . ' | Not found - ' . $request->fullUrl();
 
                     $headers = $this->removeSensitiveHeaderInfo(request()->header());
-                    
+                    $trace = $this->isJson(json_encode($exception->getTrace())) ? $exception->getTrace() : ['trace' => $exception->getTraceAsString()];
+
                     ErrorLog::create([
+                        'method' => $request->getMethod(),
                         'url' => $request->url(),
                         'request_data' => config('error-lens.security.storeRequestedData') == '1' ? $requestedData->all() : null,
                         'headers' => $headers,
                         'message' => $message,
                         'error' => $error,
-                        'trace' => $exception->getTrace(),
+                        'trace' => $trace,
                         'email' => $guardName && auth()->guard($guardName)->check() ? auth()->guard($guardName)->user()->email : null,
                         'ip_address' => $request->ip(),
                         'previous_url' => url()->previous(),
@@ -191,5 +193,10 @@ class ErrorLens
             return in_array($key, $confidentialFields) ? Str::padRight('', strlen($value), '*') : $value;
         });
         return $requestedData;
+    }
+
+    function isJson($string) {
+        json_decode($string);
+        return json_last_error() === JSON_ERROR_NONE;
     }
 }
