@@ -103,5 +103,9 @@ return [
     'user_session_key',
     'user_session_token',
     'webhook_secret',
-    'webhook_token'
+    'webhook_token',
+    'password_confirmation',
+    '_token',
+    'g-recaptcha-response',
+    'user_email'
 ];

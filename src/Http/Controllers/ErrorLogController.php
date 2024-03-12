@@ -33,7 +33,7 @@ class ErrorLogController extends Controller
             $this->getFilterValue($request->view ?? $this->getDefaultFilter())
         )
         ->select([
-            'id', 'url', 'message', 'created_at',
+            'id', 'method', 'url', 'message', 'created_at',
         ]);
 
         if ($search) {

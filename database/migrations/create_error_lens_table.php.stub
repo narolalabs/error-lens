@@ -79,6 +79,14 @@ return new class extends Migration
                 }
             });
         }
+
+        if (Schema::hasTable('error_logs')) {
+            Schema::table('error_logs', function (Blueprint $table) {
+                if ( ! Schema::hasColumn('error_logs', 'method')) {
+                    $table->string('method')->after('id');
+                }
+            });
+        }
     }
 
     /**

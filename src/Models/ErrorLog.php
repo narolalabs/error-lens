@@ -31,7 +31,7 @@ class ErrorLog extends Model
      * @var array<string>
      */
     protected $fillable = [
-        'url', 'request_data', 'headers', 'message', 'error', 'trace', 'email', 'ip_address', 'browser', 'previous_url', 'guard', 'status', 'repeated'
+        'method', 'url', 'request_data', 'headers', 'message', 'error', 'trace', 'email', 'ip_address', 'browser', 'previous_url', 'guard', 'status', 'repeated'
     ];
 
     /**
