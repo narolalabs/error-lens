@@ -36,8 +36,16 @@ class IsConfigSet
         }
         
         // Check that recommended settings are set in environment or not.
-        if (strtolower(config('app.env') ?? '') !== 'production') {
+        if (config('error-lens.error_preferences.haventProductionEnv') == 0 && 
+            strtolower(config('app.env') ?? '') !== 'production'
+        ) {
             Session::flash('error', "Set your system environment to PRODUCTION to track error logs.");
+        }
+        else if (
+            config('error-lens.error_preferences.haventProductionEnv') == 1 && 
+            strtolower(config('app.env') ?? '') !== config('error-lens.error_preferences.customEnvName')
+        ) {
+            Session::flash('error', 'Set your system environment to "'.config('error-lens.error_preferences.customEnvName').'" to track error logs.');
         }
         else if (config('app.debug') !== false) {
             Session::flash('error', "Set your debug environment to FALSE to track error logs.");
