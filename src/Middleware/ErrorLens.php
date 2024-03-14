@@ -69,8 +69,13 @@ class ErrorLens
                 }
             }
 
+            $checkEnvironment = strtolower(config('app.env') ?? '') == 'production';
+            if (config('error-lens.error_preferences.haventProductionEnv') == 1) {  
+                $checkEnvironment = strtolower(config('app.env') ?? '') == config('error-lens.error_preferences.customEnvName');
+            }
+
             // Log errors when the environment is production, debug mode is set to false, and error tracking is configured.
-            if (strtolower(config('app.env') ?? '') == 'production' && !config('app.debug') && $trackErrorOrNot) {
+            if ($checkEnvironment && !config('app.debug') && $trackErrorOrNot) {
                 if ($exception) {
                     // Get all the guard name which are in the system
                     $guards = array_keys(config('auth.guards')) ;

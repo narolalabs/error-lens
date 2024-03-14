@@ -43,7 +43,7 @@ class ConfigurationController extends Controller
             $data = $request->all();
             $data['logDeleteAfterDays'] = $data['logDeleteAfterDays'] ?? 1;
             $data['showRelatedErrorsOfDays'] = $data['showRelatedErrorsOfDays'] ?? 1;
-            $data = collect($data)->only(['autoDeleteLog', 'logDeleteAfterDays', 'showRelatedErrors', 'showRelatedErrorsOfDays', 'severityLevel', 'skipErrorCodes']);
+            $data = collect($data)->only(['haventProductionEnv', 'customEnvName', 'autoDeleteLog', 'logDeleteAfterDays', 'showRelatedErrors', 'showRelatedErrorsOfDays', 'severityLevel', 'skipErrorCodes']);
     
             if ( ! isset($data['skipErrorCodes'])) {
                 $data->put('skipErrorCodes', []);

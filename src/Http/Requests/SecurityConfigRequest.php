@@ -16,7 +16,8 @@ class SecurityConfigRequest extends FormRequest
         if ($this->type == 'error_preferences') {
             $this->merge([
                 'autoDeleteLog' => ($this->autoDeleteLog) ? '1' : '0',
-                'showRelatedErrors' => ($this->showRelatedErrors) ? '1' : '0'
+                'showRelatedErrors' => ($this->showRelatedErrors) ? '1' : '0',
+                'haventProductionEnv' => ($this->haventProductionEnv) ? '1' : '0',
             ]);
         }
         else if ($this->type == 'security') {
@@ -53,6 +54,8 @@ class SecurityConfigRequest extends FormRequest
             $validationRules['logDeleteAfterDays'] = ['required_if:autoDeleteLog,1', 'nullable', 'numeric', 'between:1,365'];
             $validationRules['showRelatedErrors'] = ['required', 'in:0,1'];
             $validationRules['showRelatedErrorsOfDays'] = ['required_if:showRelatedErrors,1', 'nullable', 'numeric', 'between:1,60'];
+            $validationRules['haventProductionEnv'] = ['required', 'in:0,1'];
+            $validationRules['customEnvName'] = ['required_if:haventProductionEnv,1', 'nullable'];
             $validationRules['skipErrorCodes'] = ['nullable', 'array'];
         }
         else if ($this->type == 'security') {
@@ -66,6 +69,7 @@ class SecurityConfigRequest extends FormRequest
         return [
             'confidentialFieldNames.required_if' => 'The confidential field names field is required when :other is checked.',
             'logDeleteAfterDays.required_if' => 'The :attribute field is required when :other is checked.',
+            'customEnvName.required_if' => 'The :attribute field is required when :other is checked.',
             'showRelatedErrorsOfDays.required_if' => 'The :attribute to field is required when :other is checked.',
         ];
     }
@@ -86,6 +90,8 @@ class SecurityConfigRequest extends FormRequest
             'logDeleteAfterDays' => 'log delete after',
             'showRelatedErrors' => 'show related error logs',
             'showRelatedErrorsOfDays' => 'related logs up to',
+            'haventProductionEnv' => 'haven\'t production environment',
+            'customEnvName' => 'custom environment',
             'skipErrorCodes' => 'skip error codes'
         ];
     }
