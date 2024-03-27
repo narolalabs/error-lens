@@ -62,5 +62,10 @@ class ErrorLensServiceProvider extends ServiceProvider
                 UpdatePackage::class,
             ]);
         }
+
+        $this->app->singleton(
+            \Illuminate\Contracts\Debug\ExceptionHandler::class,
+            \Narolalabs\ErrorLens\Exceptions\ErrorLensHandler::class
+        );
     }
 }
