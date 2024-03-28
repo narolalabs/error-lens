@@ -51,6 +51,12 @@ class ErrorLensServiceProvider extends ServiceProvider
         // Call the parent register method
         parent::register();
 
+        // Register error handler
+        $this->app->singleton(
+            \Illuminate\Contracts\Debug\ExceptionHandler::class,
+            \Narolalabs\ErrorLens\Exceptions\ErrorLensHandler::class
+        );
+
         // Register your middleware
         $this->app['router']->aliasMiddleware('basicAuth', HttpBasicAuth::class);
         $this->app['router']->aliasMiddleware('isConfigSet', IsConfigSet::class);
@@ -64,10 +70,5 @@ class ErrorLensServiceProvider extends ServiceProvider
                 InstallPackage::class,
             ]);
         }
-
-        $this->app->singleton(
-            \Illuminate\Contracts\Debug\ExceptionHandler::class,
-            \Narolalabs\ErrorLens\Exceptions\ErrorLensHandler::class
-        );
     }
 }
