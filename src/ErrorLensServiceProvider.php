@@ -5,6 +5,7 @@ namespace Narolalabs\ErrorLens;
 use Illuminate\Support\ServiceProvider;
 use Narolalabs\ErrorLens\Commands\AuthCommand;
 use Narolalabs\ErrorLens\Commands\ErrorLensCommand;
+use Narolalabs\ErrorLens\Commands\InstallPackage;
 use Narolalabs\ErrorLens\Commands\UpdatePackage;
 use Narolalabs\ErrorLens\Middleware\HttpBasicAuth;
 use Narolalabs\ErrorLens\Middleware\AutoRemoveErrorLogs;
@@ -60,6 +61,7 @@ class ErrorLensServiceProvider extends ServiceProvider
                 ErrorLensCommand::class,
                 AuthCommand::class,
                 UpdatePackage::class,
+                InstallPackage::class,
             ]);
         }
 
