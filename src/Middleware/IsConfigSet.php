@@ -20,8 +20,12 @@ class IsConfigSet
     public function handle($request, Closure $next)
     {
         $requiredConfigs = [
-            'error_preferences.severityLevel'
+            'error_preferences.severityLevel',
+            'error_preferences.haventProductionEnv'
         ];
+
+        // Load the set configurations
+        $this->configurationService->getConfigurations();
 
         // Fetch the required configs from database.
         $configs = $this->configurationService->fetchConfigurationsDetail($requiredConfigs);

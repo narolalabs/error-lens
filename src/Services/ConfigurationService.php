@@ -4,6 +4,7 @@ namespace Narolalabs\ErrorLens\Services;
 use Narolalabs\ErrorLens\Models\ErrorLogConfig;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Cache;
 
 class ConfigurationService
 {
@@ -73,5 +74,44 @@ class ConfigurationService
     {
         return ErrorLogConfig::whereIn('key', $keys)->pluck('value', 'key');
     }    
+
+    public function getConfigurations()
+    {
+        // Store configuration in cache
+        if (Cache::get('error-lens')) {
+            $errorLogConfigs = collect($this->flattenArray(Cache::get('error-lens')));
+        } else {
+            // If configuration data is not in the cache, then pick from database
+            $errorLogConfigs = ErrorLogConfig::pluck('value', 'key');
+            Cache::put('error-lens', $errorLogConfigs->toArray(), now()->addMinutes(10));
+        }
+
+        // Modify the key name of the config
+        $errorLogConfigs = $errorLogConfigs->mapWithKeys(function ($value, $key) {
+            return ['error-lens.' . $key => $value];
+        })->toArray();
+
+        // Update the configuration value
+        config($errorLogConfigs);
+
+        return $errorLogConfigs;
+    }
+
+    public function flattenArray(array $array, string $prefix = '')
+    {
+        $result = [];
+
+        foreach ($array as $key => $value) {
+            $newKey = $prefix . $key;
+
+            if (is_array($value)) {
+                $result = array_merge($result, $this->flattenArray($value, $newKey . '.'));
+            } else {
+                $result[$newKey] = $value;
+            }
+        }
+
+        return $result;
+    }
 }
 ?>
