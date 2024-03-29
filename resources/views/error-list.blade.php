@@ -22,7 +22,7 @@
                             <input class="form-check-input singleCheckbox" type="checkbox" value="{{ $errorLog->id }}">
                         </div>
                     </td>
-                    <td width="30%">{{ $errorLog->url }}</td>
+                    <td width="30%">{{ (($errorLog->method) ? $errorLog->method.': ' : '') .$errorLog->url }}</td>
                     <td>{{ $errorLog->message }}</td>
                     <td width="20%">{{ date('dS F, Y H:i', strtotime($errorLog->created_at)) }}</td>
                     <td>

@@ -5,11 +5,11 @@ namespace Narolalabs\ErrorLens\Commands;
 use Illuminate\Console\Command;
 use \Illuminate\Support\Facades\File;
 
-class UpdatePackage extends Command
+class InstallPackage extends Command
 {
-    public $signature = 'error-lens:update';
+    public $signature = 'error-lens:install';
 
-    public $description = 'Update the necessary changes with single command';
+    public $description = 'Install the necessary things with single command';
 
     public function handle(): bool
     {
@@ -30,11 +30,15 @@ class UpdatePackage extends Command
         // Publish latest assets
         $this->call('vendor:publish', ['--tag' => 'error-lens-assets', '--force' => true]);
 
-        // Remove published view
-        $viewPath = base_path('resources\views\vendor\error-lens');
-        if (File::isDirectory($viewPath)) {
-            File::deleteDirectory($viewPath);
-        }
+        // Publish latest seeder
+        $this->call('vendor:publish', ['--tag' => 'error-lens-seeds', '--force' => true]);
+
+        // Run seeder
+        $this->call('db:seed', [
+            '--class' => 'ErrorLensConfigurationSeeder',
+            '--force' => true,
+            $noInteraction
+        ]);
 
         // Clear the cache
         $this->call('config:clear');

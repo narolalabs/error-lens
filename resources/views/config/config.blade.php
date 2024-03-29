@@ -38,8 +38,8 @@
             hideShow('autoDeleteLog', 'logDeleteAfterDays');
             // Hide show for related errors elements
             hideShow('showRelatedErrors', 'showRelatedErrorsOfDays');
-            // Hide show for email notification elements
-            // hideShow('EmailNotificationforRepeatedErrors', 'EmailNotificationforRepeatedErrors');
+            // Hide show for custom environment setup
+            hideShow('haventProductionEnv', 'customEnvName');
 
             /** Start:: Select2 for multiple selections **/
             $(".confidentialFieldNamesInput, .notificationReceiverEmailInputs, .skipErrorCodesInput")
