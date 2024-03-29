@@ -5,6 +5,7 @@ namespace Narolalabs\ErrorLens;
 use Illuminate\Support\ServiceProvider;
 use Narolalabs\ErrorLens\Commands\AuthCommand;
 use Narolalabs\ErrorLens\Commands\ErrorLensCommand;
+use Narolalabs\ErrorLens\Commands\InstallPackage;
 use Narolalabs\ErrorLens\Commands\UpdatePackage;
 use Narolalabs\ErrorLens\Middleware\HttpBasicAuth;
 use Narolalabs\ErrorLens\Middleware\AutoRemoveErrorLogs;
@@ -30,11 +31,6 @@ class ErrorLensServiceProvider extends ServiceProvider
             __DIR__.'/../resources/dist' => public_path('vendor/error-lens')
         ], 'error-lens-assets');
 
-        // Publish view
-        $this->publishes([
-            __DIR__.'/../resources/views' => resource_path('views/vendor/error-lens'),
-        ], 'error-lens-views');
-
         // Publish config
         $this->publishes([
             __DIR__.'/../config' => config_path(),
@@ -55,6 +51,12 @@ class ErrorLensServiceProvider extends ServiceProvider
         // Call the parent register method
         parent::register();
 
+        // Register error handler
+        $this->app->singleton(
+            \Illuminate\Contracts\Debug\ExceptionHandler::class,
+            \Narolalabs\ErrorLens\Exceptions\ErrorLensHandler::class
+        );
+
         // Register your middleware
         $this->app['router']->aliasMiddleware('basicAuth', HttpBasicAuth::class);
         $this->app['router']->aliasMiddleware('isConfigSet', IsConfigSet::class);
@@ -65,6 +67,7 @@ class ErrorLensServiceProvider extends ServiceProvider
                 ErrorLensCommand::class,
                 AuthCommand::class,
                 UpdatePackage::class,
+                InstallPackage::class,
             ]);
         }
     }
