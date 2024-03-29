@@ -21,26 +21,14 @@ Package Installation **(Required)**
 composer require narolalabs/error-lens
 ```
 
-
-Publish and run migration **(Required)**
+Install recommended migration, assets and seeder with single command. **(Required)**
 ```bash
-php artisan vendor:publish --tag="error-lens-migrations"
-```
-```bash
-php artisan migrate
+php artisan error-lens:install
 ```
 
-Publish Assets **(Required)**
+To safeguard against unauthorized access, you can set or reset the username and password for authentication. **(Highly Recommended but optional)**
 ```bash
-php artisan vendor:publish --tag="error-lens-assets" --force
-```
-
-Register middleware in your `app/Http/Kernel.php` **(Required)**
-```php
-protected $middleware = [
-    // ...
-    \Narolalabs\ErrorLens\Middleware\ErrorLens::class,
-];
+php artisan error-lens:authentication
 ```
 
 Finally, set the configuration as `APP_ENV=production` and `APP_DEBUG=false` and clear the cache by below command.
@@ -48,14 +36,31 @@ Finally, set the configuration as `APP_ENV=production` and `APP_DEBUG=false` and
 php artisan config:clear
 ```
 
-## Additional Configurations
+## Upgrade
 
-To safeguard against unauthorized access, you can set or reset the username and password for authentication. **(Highly Recommended but optional)**
+While you upgrade the package and wish to install recommended configurations, you can do that with a single command.
 ```bash
-php artisan error-lens:authentication
+php artisan error-lens:update
 ```
 
-If you are not aware or confused about the setting configurations, you can publish the seeder and run it. **(Optional)**
+## Additional Configurations
+
+_In case you face any issues with the above installation and upgrade commands, you can resolve them by running the individual commands provided below._
+
+Publish and run migration 
+```bash
+php artisan vendor:publish --tag="error-lens-migrations"
+```
+```bash
+php artisan migrate
+```
+
+Publish Assets 
+```bash
+php artisan vendor:publish --tag="error-lens-assets" --force
+```
+
+If you are not aware or confused about the setting configurations, you can publish the seeder and run it.
 ```bash
 php artisan vendor:publish --tag=error-lens-seeds
 ```
