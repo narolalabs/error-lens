@@ -26,15 +26,17 @@ Install recommended migration, assets and seeder with single command. **(Require
 php artisan error-lens:install
 ```
 
-To safeguard against unauthorized access, you can set or reset the username and password for authentication. **(Highly Recommended but optional)**
+To safeguard against unauthorized access, you can set or reset the username and password for authentication. **(Highly recommended but optional)**
 ```bash
 php artisan error-lens:authentication
 ```
 
-Finally, set the configuration as `APP_ENV=production` and `APP_DEBUG=false` and clear the cache by below command.
+Set the configuration as `APP_ENV=production` and `APP_DEBUG=false` and clear the cache by below command.
 ```bash
 php artisan config:clear
 ```
+
+Finally, To view all the error logs, visit the `https://domain.com/error-lens`
 
 ## Upgrade
 
@@ -68,8 +70,7 @@ php artisan vendor:publish --tag=error-lens-seeds
 php artisan db:seed --class=ErrorLensConfigurationSeeder
 ```
 
-## Usage
-To view all the error logs, visit the `https://domain.com/error-lens`
+## Screenshots
 
 ![Error Lens - Dashboard](https://github.com/narolalabs/error-lens/blob/v2.x/resources/dist/assets/readme-images/Dashboard.png)
 
