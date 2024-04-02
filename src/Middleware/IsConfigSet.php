@@ -21,7 +21,6 @@ class IsConfigSet
     {
         $requiredConfigs = [
             'error_preferences.severityLevel',
-            'error_preferences.haventProductionEnv'
         ];
 
         // Load the set configurations
@@ -43,7 +42,7 @@ class IsConfigSet
         if (config('error-lens.error_preferences.haventProductionEnv') == 0 && 
             strtolower(config('app.env') ?? '') !== 'production'
         ) {
-            Session::flash('error', "Set your system environment to PRODUCTION to track error logs.");
+            Session::flash('error', "Set your system environment to PRODUCTION to track error logs, or configure the relevant environment settings accordingly");
         }
         else if (
             config('error-lens.error_preferences.haventProductionEnv') == 1 && 
