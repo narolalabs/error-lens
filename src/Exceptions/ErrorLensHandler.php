@@ -2,7 +2,7 @@
 
 namespace Narolalabs\ErrorLens\Exceptions;
 
-use \App\Exceptions\Handler;
+use \Illuminate\Foundation\Exceptions\Handler;
 use Throwable;
 use Illuminate\Support\Str;
 use Jenssegers\Agent\Facades\Agent;
@@ -16,6 +16,8 @@ class ErrorLensHandler extends Handler
     public function render($request, $exception)
     {
         try {
+            $currentUrl = $request->url();
+
             $errorLogConfigs = $this->getConfigurations();
 
             $exceptionStatusCode = $this->getStatusCode($exception);
@@ -46,6 +48,19 @@ class ErrorLensHandler extends Handler
                         'browser' => $transformData['browser'] . " - v" . Agent::version($transformData['browser']),
                         'guard' => $guardName
                     ]);
+
+                    if (str_contains($currentUrl, '/error-lens')) {
+                        $fileContent = file_get_contents($exception->getFile());
+                        // $fileContentArray = preg_split("/\r\n|\n|\r/", $fileContent);
+                        $file = $exception->getFile();
+                        $line = $exception->getLine();
+                        $traceArray = $exception->getTrace();
+                        return response()->view(
+                            'error-lens::system-error.error-detail',
+                            compact('fileContent', 'file', 'line', 'traceArray'),
+                            200
+                        );
+                    }
                 }
             }
         } catch (\Throwable $e) {
@@ -92,7 +107,7 @@ class ErrorLensHandler extends Handler
 
         // Remove sensitive headers
         foreach ($sensitiveHeaders as $header) {
-            if (isset ($headers[$header])) {
+            if (isset($headers[$header])) {
                 unset($headers[$header]);
             }
         }
@@ -104,7 +119,8 @@ class ErrorLensHandler extends Handler
     {
         // Replace the confidential string with stars (*)
         $confidentialFields = explode(',', config('error-lens.security.confidentialFieldNames'));
-        $confidentialFields = array_merge($confidentialFields, config('masked-keywords'));
+        $maskedKeyWords = config('masked-keywords') ?? [];
+        $confidentialFields = array_merge($confidentialFields, $maskedKeyWords);
         $requestedData = collect($request->all())->map(function ($value, $key) use ($confidentialFields) {
             return in_array($key, $confidentialFields) ? Str::padRight('', strlen($value), '*') : $value;
         });
@@ -154,15 +170,15 @@ class ErrorLensHandler extends Handler
     private function trackErrorOrNot($exceptionStatusCode, $errorLogConfigs)
     {
         $trackErrorOrNot = false;
-        if ($exceptionStatusCode && isset ($errorLogConfigs['error-lens.error_preferences.severityLevel'])) {
+        if ($exceptionStatusCode && isset($errorLogConfigs['error-lens.error_preferences.severityLevel'])) {
             // Track whether a severity level is set for error tracking.
             $configSeverityLevel = array_map('trim', explode(',', $errorLogConfigs['error-lens.error_preferences.severityLevel']));
             $trackErrorOrNot = in_array(substr($exceptionStatusCode, 0, 1) . 'xx', $configSeverityLevel);
 
             if (
                 $trackErrorOrNot &&
-                isset ($errorLogConfigs['error-lens.error_preferences.severityLevel']) &&
-                isset ($errorLogConfigs['error-lens.error_preferences.skipErrorCodes'])
+                isset($errorLogConfigs['error-lens.error_preferences.severityLevel']) &&
+                isset($errorLogConfigs['error-lens.error_preferences.skipErrorCodes'])
             ) {
                 // If severity is set but the error code is added to the skip error code list, then it should be ignored.
                 $skipErrorCodes = array_map('trim', explode(',', $errorLogConfigs['error-lens.error_preferences.skipErrorCodes']));
@@ -225,7 +241,7 @@ class ErrorLensHandler extends Handler
 
         $response['browser'] = Agent::browser();
 
-        $response['message'] = !empty ($exception->getMessage()) ?
+        $response['message'] = !empty($exception->getMessage()) ?
             $exception->getMessage()
             : $exception->getStatusCode() . ' | Not found - ' . $request->fullUrl();
 
@@ -234,7 +250,7 @@ class ErrorLensHandler extends Handler
 
         return $response;
     }
-    
+
     private function getUserEmail($guardName)
     {
         try {
