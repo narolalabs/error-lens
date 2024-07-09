@@ -34,7 +34,9 @@ class ErrorLensHandler extends Handler
 
                     $transformData = $this->transformErrorData($request, $exception, $exceptionStatusCode);
 
-                    ErrorLog::create([
+                    $stackDetail = $this->getStackDetail(collect($transformData['error'])->last());
+
+                    $errorLog = ErrorLog::create([
                         'method' => $request->getMethod(),
                         'url' => $request->url(),
                         'request_data' => config('error-lens.security.storeRequestedData') == '1' ? $requestedData->all() : null,
@@ -42,6 +44,9 @@ class ErrorLensHandler extends Handler
                         'message' => $transformData['message'],
                         'error' => $transformData['error'],
                         'trace' => $transformData['trace'],
+                        'stack' => $stackDetail['stack'],
+                        'stack_start' => $stackDetail['stack_start'],
+                        'stack_end' => $stackDetail['stack_end'],
                         'email' => $this->getUserEmail($guardName),
                         'ip_address' => $request->ip(),
                         'previous_url' => url()->previous(),
@@ -50,14 +55,19 @@ class ErrorLensHandler extends Handler
                     ]);
 
                     if (str_contains($currentUrl, '/error-lens')) {
-                        $fileContent = file_get_contents($exception->getFile());
-                        // $fileContentArray = preg_split("/\r\n|\n|\r/", $fileContent);
-                        $file = $exception->getFile();
-                        $line = $exception->getLine();
-                        $traceArray = $exception->getTrace();
+                        $errorDetail = collect($transformData['error'])->first();
+                        $data['errorLog'] = $errorLog;
+                        $data['stack'] = implode('', file($exception->getFile()));
+                        $data['line'] = $exception->getLine();
+                        $data['stack_start'] = $stackDetail['stack_start'];
+                        $data['stack_end'] = $stackDetail['stack_end'];
+
+                        $data['errorFile'] = (($errorDetail && isset($errorDetail['file']))) ? $errorDetail['file'] : '';
+                        $data['errorCode'] = (($errorDetail && isset($errorDetail['code']))) ? $errorDetail['code'] : '';
+                        
                         return response()->view(
                             'error-lens::system-error.error-detail',
-                            compact('fileContent', 'file', 'line', 'traceArray'),
+                            $data,
                             200
                         );
                     }
@@ -68,6 +78,31 @@ class ErrorLensHandler extends Handler
         }
 
         return parent::render($request, $exception);
+    }
+
+    private function getStackDetail($error)
+    {
+        $data = [];
+        if ($error['file'] && $error['line'] && file_exists($error['file'])) {
+            $fileContent = file($error['file']);
+            $storeBeforeAfterErrorLines = 9;
+            $totalLines = count($fileContent);
+
+            $start = ($error['line'] - $storeBeforeAfterErrorLines) <= 0 ? 0 : ($error['line'] - $storeBeforeAfterErrorLines);
+            $end = ($totalLines > ($start + ($storeBeforeAfterErrorLines * 2))) ? ($start + ($storeBeforeAfterErrorLines * 2)) : $totalLines;
+
+            for ($i = $start; $i < $end; $i++) {
+                if (isset($fileContent[$i])) {
+                    $data['stack'][] = $fileContent[$i];
+                }
+            }
+        }
+
+        return [
+            'stack' => isset($data['stack']) ? implode('', $data['stack']) : null,
+            'stack_start' => isset($start) ? $start + 1 : null,
+            'stack_end' => isset($end) ? $end + 1 : null,
+        ];
     }
 
     /**
@@ -229,7 +264,7 @@ class ErrorLensHandler extends Handler
 
         $response['error'] = collect(array_merge($exception->getTrace(), $error))->filter(function ($files) {
             if (
-                isset ($files['file']) && !Str::contains($files['file'], 'vendor') &&
+                isset($files['file']) && !Str::contains($files['file'], 'vendor') &&
                 !Str::contains($files['file'], 'Middleware\ErrorLens.php') &&
                 !Str::contains($files['file'], 'public\index.php') &&
                 !Str::contains($files['file'], 'server.php') &&

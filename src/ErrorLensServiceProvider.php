@@ -15,6 +15,8 @@ use \Narolalabs\ErrorLens\Exceptions\ErrorLensHandler;
 use \Illuminate\Contracts\Debug\ExceptionHandler;
 use \Illuminate\Foundation\Configuration\Exceptions;
 use \Illuminate\Foundation\Exceptions\Handler;
+use Illuminate\Pagination\Paginator;
+
 
 class ErrorLensServiceProvider extends ServiceProvider
 {
@@ -50,6 +52,13 @@ class ErrorLensServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'error-lens');
         $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');
         $this->mergeConfigFrom(__DIR__ . '/../config/masked-keywords.php', 'masked-keywords');
+
+        if ((int) $this->laravelVersion > 8) {
+            Paginator::useBootstrapFive();   
+        }
+        else {
+            Paginator::useBootstrap();
+        }
     }
 
     public function register()

@@ -87,6 +87,20 @@ return new class extends Migration
                 }
             });
         }
+
+        if (Schema::hasTable('error_logs')) {
+            Schema::table('error_logs', function (Blueprint $table) {
+                if ( ! Schema::hasColumn('error_logs', 'stack')) {
+                    $table->text('stack')->after('trace')->nullable();
+                }
+                if ( ! Schema::hasColumn('error_logs', 'stack_start')) {
+                    $table->smallInteger('stack_start')->after('stack')->nullable();
+                }
+                if ( ! Schema::hasColumn('error_logs', 'stack_end')) {
+                    $table->text('stack_end')->after('stack_start')->nullable();
+                }
+            });
+        }
     }
 
     /**
