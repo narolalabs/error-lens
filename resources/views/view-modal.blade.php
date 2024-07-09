@@ -86,14 +86,38 @@
 
         <div class="col-lg-4">
             <div class="accordion" id="rightside-panel">
+                @if ($errorLog->request_data)
+                    <div class="accordion-item custom_accordion-item">
+                        <h2 class="accordion-header" id="requestedData">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#requested-data" aria-expanded="true" aria-controls="requested-data">
+                                Requested Data
+                            </button>
+                        </h2>
+                        <div id="requested-data" class="accordion-collapse collapse" aria-labelledby="requestedData"
+                            data-bs-parent="#rightside-panel">
+                            <div class="accordion-body p-0">
+                                <div class="card-body">
+                                    @foreach ($errorLog->request_data as $key => $value)
+                                        <div class="mb-3 input_custom">
+                                            <label class="fw-bold">{{ $key }}</label>
+                                            <span class="form-control">{{ $value }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="accordion-item custom_accordion-item">
                     <h2 class="accordion-header" id="heading-incident-report">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                             data-bs-target="#incident-report" aria-expanded="true" aria-controls="incident-report">
                             Incident Reported
                         </button>
                     </h2>
-                    <div id="incident-report" class="accordion-collapse collapse show"
+                    <div id="incident-report" class="accordion-collapse collapse"
                         aria-labelledby="heading-incident-report" data-bs-parent="#rightside-panel">
                         <div class="accordion-body p-0">
                             <div class="card-body">
