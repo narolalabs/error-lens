@@ -17,13 +17,13 @@ class ArchivedErrorLogController extends Controller
      * @param Request $request
      * @return void
      */
-    public function index( Request $request )
+    public function index(Request $request)
     {
-        $activeError = current(static::$queryString);
         $search = addslashes($request->searchErrorInput);
         $relevant = $request->relevant;
+        $groupOccurrence = $request->groupOccurrence == null || $request->groupOccurrence == 1 || $request->groupOccurrence == 'on';
 
-        if ( $request->view && !in_array($request->view, static::$queryString) ) {
+        if ($request->view && !in_array($request->view, static::$queryString)) {
             return redirect()->route('error-lens.index');
         }
 
@@ -36,9 +36,12 @@ class ArchivedErrorLogController extends Controller
         $query = ArchivedErrorLog::getFilters(
             $this->getFilterValue($request->view ?? $this->getDefaultFilter())
         )
-        ->select([
-            'id', 'url', 'message', 'created_at',
-        ]);
+            ->select([
+                'id',
+                'url',
+                'message',
+                'created_at',
+            ]);
 
         if ($search) {
             $query = $query->where(function ($subQuery) use ($search) {
@@ -50,15 +53,21 @@ class ArchivedErrorLogController extends Controller
             $request->view = 'relevant';
             $errorLog = ArchivedErrorLog::findOrFail($relevant);
             $query = $query->where('message', $errorLog->message)
-                ->where('email', '!=',  $errorLog->email)
-                ->where('created_at', '>=',  now()->subDays(config('error-lens.error_preferences.showRelatedErrorsOfDays')));
+                ->where('email', '!=', $errorLog->email)
+                ->where('created_at', '>=', now()->subDays(config('error-lens.error_preferences.showRelatedErrorsOfDays')));
         }
-        
+
+        if ($groupOccurrence) {
+            $query = $query->whereNull('repeated')
+                ->withCount('repeatedLogs');
+        }
+
         $query = $query->latest()
-        ->paginate($this->getPerPageRecordLenght());
+            ->paginate($this->getPerPageRecordLenght());
 
         $data['errorLogs'] = $query;
         $data['activeError'] = $this->getTitle($request->view ?? $this->getDefaultFilter());
+        $data['groupOccurrence'] = $groupOccurrence;
 
         if ($request->ajax()) {
             $data['viewRouteName'] = (request()->route()->getName() === 'error-lens.index.search') ? 'error-lens.view' : 'error-lens.archived.view';
@@ -68,7 +77,7 @@ class ArchivedErrorLogController extends Controller
                 'data' => [
                     'view' => view('error-lens::error-list', $data)->render()
                 ]
-            ]);    
+            ]);
         }
         return view('error-lens::index', $data);
     }
@@ -80,7 +89,7 @@ class ArchivedErrorLogController extends Controller
      * @param string $id
      * @return void
      */
-    public function view( Request $request, string $id )
+    public function view(Request $request, string $id)
     {
         $errorLog = ArchivedErrorLog::findOrFail($id);
 
@@ -88,12 +97,12 @@ class ArchivedErrorLogController extends Controller
         $data['relevantErrors'] = 0;
         if (config('error-lens.error_preferences.showRelatedErrors') && config('error-lens.error_preferences.showRelatedErrorsOfDays')) {
             $data['relevantErrors'] = ArchivedErrorLog::where('message', $errorLog->message)
-                    ->where('email', '!=',  $errorLog->email)
-                    ->where('created_at', '>=',  now()->subDays(config('error-lens.error_preferences.showRelatedErrorsOfDays')))
-                    ->count();
+                ->where('email', '!=', $errorLog->email)
+                ->where('created_at', '>=', now()->subDays(config('error-lens.error_preferences.showRelatedErrorsOfDays')))
+                ->count();
         }
-        
-        if ( $request->ajax() ) {
+
+        if ($request->ajax()) {
             $data = [
                 'status' => true,
                 'data' => [
@@ -115,10 +124,16 @@ class ArchivedErrorLogController extends Controller
     public function destroy(Request $request)
     {
         $archivedErrorLogIds = explode(',', $request->archiveErrorId);
-        $deleteArchivedErrorLogs = ArchivedErrorLog::whereIn('id', $archivedErrorLogIds)->delete();
+        $isArchivedGroupedOccurrence = $request->isArchivedGroupedOccurrence ? true : false;
+
+        $deleteArchivedErrorLogs = ArchivedErrorLog::whereIn('id', $archivedErrorLogIds);
+        if ($isArchivedGroupedOccurrence) {
+            $deleteArchivedErrorLogs = $deleteArchivedErrorLogs->orWhereIn('repeated', $archivedErrorLogIds);
+        }
+        $deleteArchivedErrorLogs = $deleteArchivedErrorLogs->delete();
 
         if ($deleteArchivedErrorLogs) {
-            $message = (count($archivedErrorLogIds) <= 1 ? 'The archived error log has' : 'Archived error logs have')."  been deleted successfully.";
+            $message = (count($archivedErrorLogIds) <= 1 ? 'The archived error log has' : 'Archived error logs have') . "  been deleted successfully.";
             return redirect()->back()->withSuccess($message);
         }
         return redirect()->back()->withError('There seems to be an issue! Please try again later.');

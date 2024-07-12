@@ -5,6 +5,7 @@ namespace Narolalabs\ErrorLens\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class ErrorLog extends Model
@@ -100,5 +101,15 @@ class ErrorLog extends Model
     public function scopeGetFilters(Builder $query, $condition)
     {
         return $query->where('created_at', 'LIKE', "%$condition%");
+    }
+
+    /**
+     * Get all of the repeatedLogs for the ErrorLog
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function repeatedLogs(): HasMany
+    {
+        return $this->hasMany(ErrorLog::class, 'repeated', 'id');
     }
 }

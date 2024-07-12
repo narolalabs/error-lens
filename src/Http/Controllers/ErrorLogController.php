@@ -8,15 +8,17 @@ use Narolalabs\ErrorLens\Http\Requests\ArchiveErrorLogRequest;
 use Narolalabs\ErrorLens\Models\ErrorLog;
 use Illuminate\Routing\Controller;
 use Narolalabs\ErrorLens\Traits\ErrorLisingConfigTrait;
+use Illuminate\Support\Facades\Cache;
 
 class ErrorLogController extends Controller
 {
     use ErrorLisingConfigTrait;
 
     public function index(Request $request)
-    {
+    {   
         $search = addslashes($request->searchErrorInput);
         $relevant = $request->relevant;
+        $groupOccurrence = $request->groupOccurrence == null || $request->groupOccurrence == 1 || $request->groupOccurrence == 'on';
 
         if ($request->view && !in_array($request->view, static::$queryString)) {
             return redirect()->route('error-lens.index');
@@ -36,6 +38,7 @@ class ErrorLogController extends Controller
                 'method',
                 'url',
                 'message',
+                'repeated',
                 'created_at',
             ]);
 
@@ -53,11 +56,19 @@ class ErrorLogController extends Controller
                 ->where('created_at', '>=', now()->subDays(config('error-lens.error_preferences.showRelatedErrorsOfDays')));
         }
 
+        if ($groupOccurrence) {
+            $query = $query->whereNull('repeated')
+                ->withCount('repeatedLogs');
+        }
+        
         $query = $query->latest()
             ->paginate($this->getPerPageRecordLenght());
 
+        // dd($query);
+
         $data['errorLogs'] = $query;
         $data['activeError'] = $this->getTitle($request->view ?? $this->getDefaultFilter());
+        $data['groupOccurrence'] = $groupOccurrence;
 
         if ($request->ajax()) {
             $data['viewRouteName'] = (request()->route()->getName() === 'error-lens.index.search') ? 'error-lens.view' : 'error-lens.archived.view';
@@ -121,7 +132,14 @@ class ErrorLogController extends Controller
     public function archive_selected(ArchiveErrorLogRequest $request)
     {
         $errorLogIds = explode(',', $request->errorId);
-        $errorLogs = ErrorLog::whereIn('id', $errorLogIds)->each(function ($errorLog) {
+        $isGroupedOccurrence = $request->isGroupedOccurrence ? true : false;
+
+        $errorLogs = ErrorLog::whereIn('id', $errorLogIds);
+        if ($isGroupedOccurrence) {
+            $errorLogs = $errorLogs->orWhereIn('repeated', $errorLogIds);
+        }
+        
+        $errorLogs->each(function ($errorLog) {
             //getting the record one by one that want to be copied
             //copy them using replicate and setting destination table by setTable()
             $newErrorLog = $errorLog->replicate()->setTable('error_logs_archived');
@@ -133,6 +151,8 @@ class ErrorLogController extends Controller
             //add following command if you need to remove records from error-log table
             $errorLog->delete();
         });
+
+        Cache::flush();
 
         if ($errorLogs) {
             $message = (count($errorLogIds) <= 1 ? 'The error log has' : 'Error logs have') . "  been archived successfully.";

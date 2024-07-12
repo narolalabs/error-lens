@@ -36,6 +36,27 @@ class ErrorLensHandler extends Handler
 
                     $stackDetail = $this->getStackDetail(collect($transformData['error'])->last());
 
+                    $existingData = [
+                        'method' => $request->getMethod(),
+                        'url' => $request->url(),
+                        'message' => $transformData['message'],
+                        'stack' => $stackDetail['stack'],
+                        'stack_start' => $stackDetail['stack_start'],
+                        'stack_end' => $stackDetail['stack_end'],
+                        'email' => $this->getUserEmail($guardName),
+                        'ip_address' => $request->ip(),
+                        'previous_url' => url()->previous(),
+                        'browser' => $transformData['browser'] . " - v" . Agent::version($transformData['browser']),
+                        'guard' => $guardName
+                    ];
+
+                    $cacheKey = 'error_log_' . md5(json_encode($existingData));
+
+                    // Try to get the error log from cache
+                    $errorExist = Cache::remember($cacheKey, 180, function () use ($existingData) {
+                        return ErrorLog::where($existingData)->first();
+                    });
+
                     $errorLog = ErrorLog::create([
                         'method' => $request->getMethod(),
                         'url' => $request->url(),
@@ -51,7 +72,8 @@ class ErrorLensHandler extends Handler
                         'ip_address' => $request->ip(),
                         'previous_url' => url()->previous(),
                         'browser' => $transformData['browser'] . " - v" . Agent::version($transformData['browser']),
-                        'guard' => $guardName
+                        'guard' => $guardName,
+                        'repeated' => ($errorExist) ? $errorExist->id : null
                     ]);
 
                     if (str_contains($currentUrl, '/error-lens')) {

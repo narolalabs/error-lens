@@ -14,23 +14,27 @@ return new class extends Migration
         if (!Schema::hasTable('error_logs')) {
             Schema::create('error_logs', function (Blueprint $table) {
                 $table->uuid('id')->primary();
+                 $table->string('method');
                 $table->string('url', 191);
                 $table->integer('status')->default('0');
-                $table->json('request_data')->nullable();
-                $table->json('headers')->nullable();
                 $table->text('message');
                 $table->json('error')->nullable();
                 $table->json('trace')->nullable();
+                $table->text('stack')->nullable();
+                $table->smallInteger('stack_start')->nullable();
+                $table->smallInteger('stack_end')->nullable();
                 $table->string('email', 100)->nullable();
                 $table->string('ip_address', 30)->nullable();
                 $table->string('guard', 30)->nullable();
                 $table->string('browser', 30)->nullable();
+                $table->json('request_data')->nullable();
+                $table->uuid('repeated')->nullable();
+                $table->json('headers')->nullable();
                 $table->string('previous_url', 191)->nullable();
-                $table->integer('repeated')->default('1');
                 $table->timestamps();
             });
         }
-        
+
         if (!Schema::hasTable('error_log_configs')) {
             Schema::create('error_log_configs', function (Blueprint $table) {
                 $table->id();
@@ -43,64 +47,27 @@ return new class extends Migration
         if (!Schema::hasTable('error_logs_archived')) {
             Schema::create('error_logs_archived', function (Blueprint $table) {
                 $table->uuid('id')->primary();
+                 $table->string('method');
                 $table->string('url', 191);
                 $table->integer('status')->default('0');
-                $table->json('request_data')->nullable();
-                $table->json('headers')->nullable();
                 $table->text('message');
                 $table->json('error')->nullable();
                 $table->json('trace')->nullable();
+                $table->text('stack')->nullable();
+                $table->smallInteger('stack_start')->nullable();
+                $table->smallInteger('stack_end')->nullable();
                 $table->string('email', 100)->nullable();
                 $table->string('ip_address', 30)->nullable();
                 $table->string('guard', 30)->nullable();
                 $table->string('browser', 30)->nullable();
+                $table->json('request_data')->nullable();
+                $table->uuid('repeated')->nullable();
+                $table->json('headers')->nullable();
                 $table->string('previous_url', 191)->nullable();
-                $table->integer('repeated')->default('1');
                 $table->timestamps();
             });
         }
 
-        if (Schema::hasTable('error_logs')) {
-            Schema::table('error_logs', function (Blueprint $table) {
-                if ( ! Schema::hasColumn('error_logs', 'status')) {
-                    $table->integer('status')->default('0')->after('browser');
-                }
-                if ( ! Schema::hasColumn('error_logs', 'request_data')) {
-                    $table->json('request_data')->nullable()->after('status');
-                }
-                if ( ! Schema::hasColumn('error_logs', 'guard')) {
-                    $table->string('guard', 30)->nullable()->after('request_data');
-                }
-                if ( ! Schema::hasColumn('error_logs', 'repeated')) {
-                    $table->integer('repeated')->default('1')->after('guard');
-                }
-                if ( ! Schema::hasColumn('error_logs', 'headers')) {
-                    $table->json('headers')->nullable()->after('repeated');
-                }
-            });
-        }
-
-        if (Schema::hasTable('error_logs')) {
-            Schema::table('error_logs', function (Blueprint $table) {
-                if ( ! Schema::hasColumn('error_logs', 'method')) {
-                    $table->string('method')->after('id');
-                }
-            });
-        }
-
-        if (Schema::hasTable('error_logs')) {
-            Schema::table('error_logs', function (Blueprint $table) {
-                if ( ! Schema::hasColumn('error_logs', 'stack')) {
-                    $table->text('stack')->after('trace')->nullable();
-                }
-                if ( ! Schema::hasColumn('error_logs', 'stack_start')) {
-                    $table->smallInteger('stack_start')->after('stack')->nullable();
-                }
-                if ( ! Schema::hasColumn('error_logs', 'stack_end')) {
-                    $table->text('stack_end')->after('stack_start')->nullable();
-                }
-            });
-        }
     }
 
     /**

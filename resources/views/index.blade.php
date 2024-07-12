@@ -166,6 +166,7 @@
                                     @csrf
                                     @method('POST')
                                     <input type="hidden" name="errorId" id="errorId">
+                                    <input type="hidden" name="isGroupedOccurrence" id="isGroupedOccurrence">
                                     <div class="align-middle">
                                         <b><span id="selectedCheckboxCount">0</span> Selected</b>
                                         <button class="btn btn-primary ms-2">Archive</button>
@@ -176,6 +177,7 @@
                                     @csrf
                                     @method('POST')
                                     <input type="hidden" name="archiveErrorId" id="archiveErrorId">
+                                    <input type="hidden" name="isArchivedGroupedOccurrence" id="isArchivedGroupedOccurrence">
                                     <div class="align-middle">
                                         <b><span id="selectedArchivedCheckboxCount">0</span> Selected</b>
                                         <button class="btn btn-primary ms-2">Delete</button>
@@ -185,10 +187,16 @@
                         </div>
                         <div class="custom_table p-4">
                             <div class="row">
-                                <div class="col-md-12 col-lg-8 col-xl-5 ms-auto">
-                                    <form action="" method="POST" id="searchErrorForm">
-                                        @csrf
-                                        @method('POST')
+                                <form action="" method="POST" id="searchErrorForm">
+                                    @csrf
+                                    @method('POST')
+                                    <div class="col-md-6 col-lg-8 col-xl-5">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" name="groupOccurrence" id="groupOccurrence" checked>
+                                            <label class="form-check-label" for="groupOccurrence">Group Occurrence</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-lg-8 col-xl-5 ms-auto">
                                         <div class="input-group mb-3">
                                             <input type="text" class="form-control" placeholder="Search error"
                                                 aria-label="Search error" aria-describedby="searchErrorButton"
@@ -203,8 +211,8 @@
                                                 </svg>
                                             </button>
                                         </div>
-                                    </form>
-                                </div>
+                                    </div>
+                                </form>
                             </div>
                             <div id="errorListingTableWrapper">
                                 @include('error-lens::error-list')
@@ -231,6 +239,7 @@
             var selectAll = document.getElementById('selectAll');
             var singleCheckboxes = document.querySelectorAll('.singleCheckbox');
             var errorListingTableWrapper = document.getElementById('errorListingTableWrapper');
+            var groupOccurrence = document.getElementById('groupOccurrence');
 
             // Search error form parameters
             var searchErrorForm = document.getElementById('searchErrorForm');
@@ -240,11 +249,13 @@
             var archivedErrorForm = document.getElementById('archivedErrorForm');
             var selectedCheckboxCount = document.getElementById('selectedCheckboxCount');
             var errorId = document.getElementById('errorId');
+            var isGroupedOccurrence = document.getElementById('isGroupedOccurrence');
 
             // Archived error delete form parameteres
             var archivedErrorDeleteForm = document.getElementById('archivedErrorDeleteForm');
             var selectedArchivedCheckboxCount = document.getElementById('selectedArchivedCheckboxCount');
             var archiveErrorId = document.getElementById('archiveErrorId');
+            var isArchivedGroupedOccurrence = document.getElementById('isArchivedGroupedOccurrence');
 
             managePagination();
             selectAllCheckbox();
@@ -267,6 +278,19 @@
                 event.preventDefault();
 
                 addQueryParams('searchErrorInput', searchErrorInput.value);
+                addQueryParams('groupOccurrence', groupOccurrence.checked ? 1 : 0);
+
+                // Get form data
+                let formData = new FormData(searchErrorForm);
+                loadTableData('POST', window.location.href, formData);
+            });
+
+            // Grouo Occurrence checkbox
+            groupOccurrence.addEventListener('change', function(event) {
+                event.preventDefault();
+
+                addQueryParams('searchErrorInput', searchErrorInput.value);
+                addQueryParams('groupOccurrence', groupOccurrence.checked ? 1 : 0);
 
                 // Get form data
                 let formData = new FormData(searchErrorForm);
@@ -306,6 +330,7 @@
                     checkboxIds.push(checkbox.value);
                 });
                 errorId.value = checkboxIds.toString();
+                isGroupedOccurrence.value = groupOccurrence.checked ? 1 : 0;
             }
 
             // Hide show archive error delete form
@@ -325,6 +350,7 @@
                     checkboxIds.push(checkbox.value);
                 });
                 archiveErrorId.value = checkboxIds.toString();
+                isArchivedGroupedOccurrence.value = groupOccurrence.checked ? 1 : 0;
             }
 
             // Initialize the checkbox variables and events for the same
