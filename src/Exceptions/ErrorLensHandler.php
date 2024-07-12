@@ -2,7 +2,7 @@
 
 namespace Narolalabs\ErrorLens\Exceptions;
 
-use \App\Exceptions\Handler;
+use \Illuminate\Foundation\Exceptions\Handler;
 use Throwable;
 use Illuminate\Support\Str;
 use Jenssegers\Agent\Facades\Agent;
@@ -16,6 +16,8 @@ class ErrorLensHandler extends Handler
     public function render($request, $exception)
     {
         try {
+            $currentUrl = $request->url();
+
             $errorLogConfigs = $this->getConfigurations();
 
             $exceptionStatusCode = $this->getStatusCode($exception);
@@ -32,7 +34,30 @@ class ErrorLensHandler extends Handler
 
                     $transformData = $this->transformErrorData($request, $exception, $exceptionStatusCode);
 
-                    ErrorLog::create([
+                    $stackDetail = $this->getStackDetail(collect($transformData['error'])->last());
+
+                    $existingData = [
+                        'method' => $request->getMethod(),
+                        'url' => $request->url(),
+                        'message' => $transformData['message'],
+                        'stack' => $stackDetail['stack'],
+                        'stack_start' => $stackDetail['stack_start'],
+                        'stack_end' => $stackDetail['stack_end'],
+                        'email' => $this->getUserEmail($guardName),
+                        'ip_address' => $request->ip(),
+                        'previous_url' => url()->previous(),
+                        'browser' => $transformData['browser'] . " - v" . Agent::version($transformData['browser']),
+                        'guard' => $guardName
+                    ];
+
+                    $cacheKey = 'error_log_' . md5(json_encode($existingData));
+
+                    // Try to get the error log from cache
+                    $errorExist = Cache::remember($cacheKey, 180, function () use ($existingData) {
+                        return ErrorLog::where($existingData)->first();
+                    });
+
+                    $errorLog = ErrorLog::create([
                         'method' => $request->getMethod(),
                         'url' => $request->url(),
                         'request_data' => config('error-lens.security.storeRequestedData') == '1' ? $requestedData->all() : null,
@@ -40,12 +65,34 @@ class ErrorLensHandler extends Handler
                         'message' => $transformData['message'],
                         'error' => $transformData['error'],
                         'trace' => $transformData['trace'],
+                        'stack' => $stackDetail['stack'],
+                        'stack_start' => $stackDetail['stack_start'],
+                        'stack_end' => $stackDetail['stack_end'],
                         'email' => $this->getUserEmail($guardName),
                         'ip_address' => $request->ip(),
                         'previous_url' => url()->previous(),
                         'browser' => $transformData['browser'] . " - v" . Agent::version($transformData['browser']),
-                        'guard' => $guardName
+                        'guard' => $guardName,
+                        'repeated' => ($errorExist) ? $errorExist->id : null
                     ]);
+
+                    if (str_contains($currentUrl, '/error-lens')) {
+                        $errorDetail = collect($transformData['error'])->first();
+                        $data['errorLog'] = $errorLog;
+                        $data['stack'] = implode('', file($exception->getFile()));
+                        $data['line'] = $exception->getLine();
+                        $data['stack_start'] = $stackDetail['stack_start'];
+                        $data['stack_end'] = $stackDetail['stack_end'];
+
+                        $data['errorFile'] = (($errorDetail && isset($errorDetail['file']))) ? $errorDetail['file'] : '';
+                        $data['errorCode'] = (($errorDetail && isset($errorDetail['code']))) ? $errorDetail['code'] : '';
+                        
+                        return response()->view(
+                            'error-lens::system-error.error-detail',
+                            $data,
+                            200
+                        );
+                    }
                 }
             }
         } catch (\Throwable $e) {
@@ -53,6 +100,31 @@ class ErrorLensHandler extends Handler
         }
 
         return parent::render($request, $exception);
+    }
+
+    private function getStackDetail($error)
+    {
+        $data = [];
+        if ($error['file'] && $error['line'] && file_exists($error['file'])) {
+            $fileContent = file($error['file']);
+            $storeBeforeAfterErrorLines = 9;
+            $totalLines = count($fileContent);
+
+            $start = ($error['line'] - $storeBeforeAfterErrorLines) <= 0 ? 0 : ($error['line'] - $storeBeforeAfterErrorLines);
+            $end = ($totalLines > ($start + ($storeBeforeAfterErrorLines * 2))) ? ($start + ($storeBeforeAfterErrorLines * 2)) : $totalLines;
+
+            for ($i = $start; $i < $end; $i++) {
+                if (isset($fileContent[$i])) {
+                    $data['stack'][] = $fileContent[$i];
+                }
+            }
+        }
+
+        return [
+            'stack' => isset($data['stack']) ? implode('', $data['stack']) : null,
+            'stack_start' => isset($start) ? $start + 1 : null,
+            'stack_end' => isset($end) ? $end + 1 : null,
+        ];
     }
 
     /**
@@ -92,7 +164,7 @@ class ErrorLensHandler extends Handler
 
         // Remove sensitive headers
         foreach ($sensitiveHeaders as $header) {
-            if (isset ($headers[$header])) {
+            if (isset($headers[$header])) {
                 unset($headers[$header]);
             }
         }
@@ -104,7 +176,8 @@ class ErrorLensHandler extends Handler
     {
         // Replace the confidential string with stars (*)
         $confidentialFields = explode(',', config('error-lens.security.confidentialFieldNames'));
-        $confidentialFields = array_merge($confidentialFields, config('masked-keywords'));
+        $maskedKeyWords = config('masked-keywords') ?? [];
+        $confidentialFields = array_merge($confidentialFields, $maskedKeyWords);
         $requestedData = collect($request->all())->map(function ($value, $key) use ($confidentialFields) {
             return in_array($key, $confidentialFields) ? Str::padRight('', strlen($value), '*') : $value;
         });
@@ -154,15 +227,15 @@ class ErrorLensHandler extends Handler
     private function trackErrorOrNot($exceptionStatusCode, $errorLogConfigs)
     {
         $trackErrorOrNot = false;
-        if ($exceptionStatusCode && isset ($errorLogConfigs['error-lens.error_preferences.severityLevel'])) {
+        if ($exceptionStatusCode && isset($errorLogConfigs['error-lens.error_preferences.severityLevel'])) {
             // Track whether a severity level is set for error tracking.
             $configSeverityLevel = array_map('trim', explode(',', $errorLogConfigs['error-lens.error_preferences.severityLevel']));
             $trackErrorOrNot = in_array(substr($exceptionStatusCode, 0, 1) . 'xx', $configSeverityLevel);
 
             if (
                 $trackErrorOrNot &&
-                isset ($errorLogConfigs['error-lens.error_preferences.severityLevel']) &&
-                isset ($errorLogConfigs['error-lens.error_preferences.skipErrorCodes'])
+                isset($errorLogConfigs['error-lens.error_preferences.severityLevel']) &&
+                isset($errorLogConfigs['error-lens.error_preferences.skipErrorCodes'])
             ) {
                 // If severity is set but the error code is added to the skip error code list, then it should be ignored.
                 $skipErrorCodes = array_map('trim', explode(',', $errorLogConfigs['error-lens.error_preferences.skipErrorCodes']));
@@ -213,7 +286,7 @@ class ErrorLensHandler extends Handler
 
         $response['error'] = collect(array_merge($exception->getTrace(), $error))->filter(function ($files) {
             if (
-                isset ($files['file']) && !Str::contains($files['file'], 'vendor') &&
+                isset($files['file']) && !Str::contains($files['file'], 'vendor') &&
                 !Str::contains($files['file'], 'Middleware\ErrorLens.php') &&
                 !Str::contains($files['file'], 'public\index.php') &&
                 !Str::contains($files['file'], 'server.php') &&
@@ -225,7 +298,7 @@ class ErrorLensHandler extends Handler
 
         $response['browser'] = Agent::browser();
 
-        $response['message'] = !empty ($exception->getMessage()) ?
+        $response['message'] = !empty($exception->getMessage()) ?
             $exception->getMessage()
             : $exception->getStatusCode() . ' | Not found - ' . $request->fullUrl();
 
@@ -234,7 +307,7 @@ class ErrorLensHandler extends Handler
 
         return $response;
     }
-    
+
     private function getUserEmail($guardName)
     {
         try {
