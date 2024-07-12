@@ -8,18 +8,19 @@ use Narolalabs\ErrorLens\Http\Requests\ArchiveErrorLogRequest;
 use Narolalabs\ErrorLens\Models\ErrorLog;
 use Illuminate\Routing\Controller;
 use Narolalabs\ErrorLens\Traits\ErrorLisingConfigTrait;
+use Illuminate\Support\Facades\Cache;
 
 class ErrorLogController extends Controller
 {
     use ErrorLisingConfigTrait;
 
-    public function index( Request $request )
-    {
-        $activeError = current(static::$queryString);
+    public function index(Request $request)
+    {   
         $search = addslashes($request->searchErrorInput);
         $relevant = $request->relevant;
+        $groupOccurrence = $request->groupOccurrence == null || $request->groupOccurrence == 1 || $request->groupOccurrence == 'on';
 
-        if ( $request->view && !in_array($request->view, static::$queryString) ) {
+        if ($request->view && !in_array($request->view, static::$queryString)) {
             return redirect()->route('error-lens.index');
         }
 
@@ -32,9 +33,14 @@ class ErrorLogController extends Controller
         $query = ErrorLog::getFilters(
             $this->getFilterValue($request->view ?? $this->getDefaultFilter())
         )
-        ->select([
-            'id', 'method', 'url', 'message', 'created_at',
-        ]);
+            ->select([
+                'id',
+                'method',
+                'url',
+                'message',
+                'repeated',
+                'created_at',
+            ]);
 
         if ($search) {
             $query = $query->where(function ($subQuery) use ($search) {
@@ -46,15 +52,23 @@ class ErrorLogController extends Controller
             $request->view = 'relevant';
             $errorLog = ErrorLog::findOrFail($relevant);
             $query = $query->where('message', $errorLog->message)
-            ->where('email', '!=',  $errorLog->email)
-            ->where('created_at', '>=',  now()->subDays(config('error-lens.error_preferences.showRelatedErrorsOfDays')));
+                ->where('email', '!=', $errorLog->email)
+                ->where('created_at', '>=', now()->subDays(config('error-lens.error_preferences.showRelatedErrorsOfDays')));
+        }
+
+        if ($groupOccurrence) {
+            $query = $query->whereNull('repeated')
+                ->withCount('repeatedLogs');
         }
         
         $query = $query->latest()
-        ->paginate($this->getPerPageRecordLenght());
+            ->paginate($this->getPerPageRecordLenght());
+
+        // dd($query);
 
         $data['errorLogs'] = $query;
         $data['activeError'] = $this->getTitle($request->view ?? $this->getDefaultFilter());
+        $data['groupOccurrence'] = $groupOccurrence;
 
         if ($request->ajax()) {
             $data['viewRouteName'] = (request()->route()->getName() === 'error-lens.index.search') ? 'error-lens.view' : 'error-lens.archived.view';
@@ -64,12 +78,12 @@ class ErrorLogController extends Controller
                 'data' => [
                     'view' => view('error-lens::error-list', $data)->render()
                 ]
-            ]);    
+            ]);
         }
         return view('error-lens::index', $data);
     }
 
-    public function view( Request $request, string $id )
+    public function view(Request $request, string $id)
     {
         $errorLog = ErrorLog::findOrFail($id);
 
@@ -77,12 +91,21 @@ class ErrorLogController extends Controller
         $data['relevantErrors'] = 0;
         if (config('error-lens.error_preferences.showRelatedErrors') && config('error-lens.error_preferences.showRelatedErrorsOfDays')) {
             $data['relevantErrors'] = ErrorLog::where('message', $errorLog->message)
-                    ->where('email', '!=',  $errorLog->email)
-                    ->where('created_at', '>=',  now()->subDays(config('error-lens.error_preferences.showRelatedErrorsOfDays')))
-                    ->count();
+                ->where('email', '!=', $errorLog->email)
+                ->where('created_at', '>=', now()->subDays(config('error-lens.error_preferences.showRelatedErrorsOfDays')))
+                ->count();
         }
-        
-        if ( $request->ajax() ) {
+
+        $errorDetail = collect($data['errorLog']->error)->first();
+        $data['stack'] = $data['errorLog']->stack;
+        $data['line'] = (($errorDetail && isset($errorDetail['line']))) ? $errorDetail['line'] : '';
+        $data['stack_start'] = $data['errorLog']->stack_start;
+        $data['stack_end'] = $data['errorLog']->stack_end;
+
+        $data['errorFile'] = (($errorDetail && isset($errorDetail['file']))) ? $errorDetail['file'] : '';
+        $data['errorCode'] = (($errorDetail && isset($errorDetail['code']))) ? $errorDetail['code'] : '';
+
+        if ($request->ajax()) {
             $data = [
                 'status' => true,
                 'data' => [
@@ -95,7 +118,7 @@ class ErrorLogController extends Controller
         return view('error-lens::view', $data);
     }
 
-    public function clear( Request $request ): RedirectResponse
+    public function clear(Request $request): RedirectResponse
     {
         try {
             ErrorLog::truncate();
@@ -109,7 +132,14 @@ class ErrorLogController extends Controller
     public function archive_selected(ArchiveErrorLogRequest $request)
     {
         $errorLogIds = explode(',', $request->errorId);
-        $errorLogs = ErrorLog::whereIn('id', $errorLogIds)->each(function ($errorLog) {
+        $isGroupedOccurrence = $request->isGroupedOccurrence ? true : false;
+
+        $errorLogs = ErrorLog::whereIn('id', $errorLogIds);
+        if ($isGroupedOccurrence) {
+            $errorLogs = $errorLogs->orWhereIn('repeated', $errorLogIds);
+        }
+        
+        $errorLogs->each(function ($errorLog) {
             //getting the record one by one that want to be copied
             //copy them using replicate and setting destination table by setTable()
             $newErrorLog = $errorLog->replicate()->setTable('error_logs_archived');
@@ -122,8 +152,10 @@ class ErrorLogController extends Controller
             $errorLog->delete();
         });
 
+        Cache::flush();
+
         if ($errorLogs) {
-            $message = (count($errorLogIds) <= 1 ? 'The error log has' : 'Error logs have')."  been archived successfully.";
+            $message = (count($errorLogIds) <= 1 ? 'The error log has' : 'Error logs have') . "  been archived successfully.";
             return redirect()->back()->withSuccess($message);
         }
         return redirect()->back()->withError('There seems to be an issue! Please try again later.');

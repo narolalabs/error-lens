@@ -51,7 +51,7 @@
                 <div class="d-flex  justify-content-between  align-items-top">
                     <div class="form-group mb-3">
                         <div class="form-check form-switch">
-                            <label class="form-check-label" for="haventProductionEnv">Have't Production Environment?</label>
+                            <label class="form-check-label" for="haventProductionEnv">Haven't Production Environment?</label>
                             <input class="form-check-input" type="checkbox" role="switch"
                                 name="haventProductionEnv" id="haventProductionEnv"
                                 {{ old('haventProductionEnv', @$configurations['error_preferences.haventProductionEnv']) ? 'checked' : '' }}
