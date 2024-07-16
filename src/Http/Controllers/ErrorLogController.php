@@ -9,6 +9,7 @@ use Narolalabs\ErrorLens\Models\ErrorLog;
 use Illuminate\Routing\Controller;
 use Narolalabs\ErrorLens\Traits\ErrorLisingConfigTrait;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Session;
 
 class ErrorLogController extends Controller
 {
@@ -156,8 +157,10 @@ class ErrorLogController extends Controller
 
         if ($errorLogs) {
             $message = (count($errorLogIds) <= 1 ? 'The error log has' : 'Error logs have') . "  been archived successfully.";
-            return redirect()->back()->withSuccess($message);
+            Session::flash('error-lens-success', $message);
+            return redirect()->back();
         }
-        return redirect()->back()->withError('There seems to be an issue! Please try again later.');
+        Session::flash('error-lens-error', 'There seems to be an issue! Please try again later.');
+        return redirect()->back();
     }
 }
