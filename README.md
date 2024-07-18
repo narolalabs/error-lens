@@ -35,8 +35,10 @@ Set the configuration as `APP_ENV=production` and `APP_DEBUG=false` and clear th
 ```bash
 php artisan config:clear
 ```
+> **Important Instructions**: If you are installing in a development environment and the cache is not cleared, please re-run the `php artisan serve` command.
 
-Finally, To view all the error logs, visit the `https://domain.com/error-lens`
+Finally, To view all the error logs, visit the **`https://domain.com/error-lens`**
+<br>
 
 ## Upgrade
 

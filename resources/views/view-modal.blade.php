@@ -70,18 +70,16 @@
                         </div>
                     @endif
                 </div>
-            @endif
-
-            {{-- <div class="mb-3">
-                <div class="card-body error-panel">
-                    <h3>Request Data:</h3>
-                    @if ($errorLog->request_data)
-                        <pre><code class="language-json overflow-auto error-wrapper">{{ json_encode($errorLog->request_data, JSON_PRETTY_PRINT) }}</code></pre>
-                    @else
-                        <h6 class="m-0">N/A</h6>
-                    @endif
+            @else
+                <div class="mb-3">
+                    <p class="fw-bolder">
+                        Error Tracing:
+                    </p>
+                    <div class="error-page mb-5">
+                        <pre class="line-numbers"><code class="language-php">{{ print_r($trace) }}</code></pre>
+                    </div>
                 </div>
-            </div> --}}
+            @endif
         </div>
 
         <div class="col-lg-4">

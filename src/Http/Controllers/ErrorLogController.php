@@ -9,6 +9,7 @@ use Narolalabs\ErrorLens\Models\ErrorLog;
 use Illuminate\Routing\Controller;
 use Narolalabs\ErrorLens\Traits\ErrorLisingConfigTrait;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Session;
 
 class ErrorLogController extends Controller
 {
@@ -97,13 +98,19 @@ class ErrorLogController extends Controller
         }
 
         $errorDetail = collect($data['errorLog']->error)->first();
+        $data['trace'] = $errorLog->trace;
         $data['stack'] = $data['errorLog']->stack;
         $data['line'] = (($errorDetail && isset($errorDetail['line']))) ? $errorDetail['line'] : '';
         $data['stack_start'] = $data['errorLog']->stack_start;
         $data['stack_end'] = $data['errorLog']->stack_end;
 
         $data['errorFile'] = (($errorDetail && isset($errorDetail['file']))) ? $errorDetail['file'] : '';
-        $data['errorCode'] = (($errorDetail && isset($errorDetail['code']))) ? $errorDetail['code'] : '';
+        $data['errorCode'] = (($errorDetail && isset($errorDetail['code']))) ? $errorDetail['code'] : $errorLog['status'];
+
+        // Pick the view from blade file instead of cache file 
+        if (str_contains($errorLog->message, 'resources\views')) {
+            $data['errorFile'] = preg_match('/\(View: (.+)\)/', $errorLog->message, $matches) ? trim($matches[1]) : $data['errorFile'];
+        }
 
         if ($request->ajax()) {
             $data = [
@@ -156,8 +163,10 @@ class ErrorLogController extends Controller
 
         if ($errorLogs) {
             $message = (count($errorLogIds) <= 1 ? 'The error log has' : 'Error logs have') . "  been archived successfully.";
-            return redirect()->back()->withSuccess($message);
+            Session::flash('error-lens-success', $message);
+            return redirect()->back();
         }
-        return redirect()->back()->withError('There seems to be an issue! Please try again later.');
+        Session::flash('error-lens-error', 'There seems to be an issue! Please try again later.');
+        return redirect()->back();
     }
 }
