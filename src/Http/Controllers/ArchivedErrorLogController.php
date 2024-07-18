@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Narolalabs\ErrorLens\Models\ArchivedErrorLog;
 use Illuminate\Routing\Controller;
 use Narolalabs\ErrorLens\Traits\ErrorLisingConfigTrait;
+use Illuminate\Support\Facades\Session;
 
 class ArchivedErrorLogController extends Controller
 {
@@ -134,8 +135,10 @@ class ArchivedErrorLogController extends Controller
 
         if ($deleteArchivedErrorLogs) {
             $message = (count($archivedErrorLogIds) <= 1 ? 'The archived error log has' : 'Archived error logs have') . "  been deleted successfully.";
-            return redirect()->back()->withSuccess($message);
+            Session::flash('error-lens-success', $message);
+            return redirect()->back();
         }
-        return redirect()->back()->withError('There seems to be an issue! Please try again later.');
+        Session::flash('error-lens-error', "There seems to be an issue! Please try again later.");
+        return redirect()->back();
     }
 }

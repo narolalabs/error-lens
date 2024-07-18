@@ -175,6 +175,10 @@
                     </small>
                 </div>
 
+                <div class="mt-3 mb-4">
+                    <b class="text-danger">[Note: The system will, by default, skip the 400, 401, 403, 404, 406, 409, 413, and 422 status codes, whether configured or not.]</b>
+                </div>
+
                 <div class="form-group">
                     <button type="submit" class="btn btn-primary">Submit</button>
                 </div>

@@ -38,7 +38,7 @@ class ErrorLensConfigurationSeeder extends Seeder
                 ],
                 [
                     'key' => 'error_preferences.skipErrorCodes',
-                    'value' => '400,401,403,404,406,409,413'
+                    'value' => '400,401,403,404,406,409,413,422'
                 ],
                 [
                     'key' => 'security.storeRequestedData',
