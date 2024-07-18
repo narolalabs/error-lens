@@ -55,6 +55,15 @@
                         @endforeach
                     </div>
                 @endif
+            @else
+                <div class="mb-3">
+                    <p class="fw-bolder">
+                        Error Tracing:
+                    </p>
+                    <div class="error-page mb-5">
+                        <pre class="line-numbers"><code class="language-php">{{ print_r($trace) }}</code></pre>
+                    </div>
+                </div>
             @endif
         </div>
 
@@ -241,4 +250,5 @@
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/plugins/line-highlight/prism-line-highlight.min.js">
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.22.0/components/prism-json.min.js"></script>
 @endsection

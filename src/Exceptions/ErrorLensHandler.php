@@ -13,6 +13,8 @@ use Illuminate\Http\Request;
 
 class ErrorLensHandler extends Handler
 {
+    private $defaultSkipErrorCodes = [400, 401, 403, 404, 406, 409, 413, 422];
+
     public function render($request, $exception)
     {
         try {
@@ -39,6 +41,7 @@ class ErrorLensHandler extends Handler
                     $existingData = [
                         'method' => $request->getMethod(),
                         'url' => $request->url(),
+                        'status' => $exceptionStatusCode,
                         'message' => $transformData['message'],
                         'stack' => $stackDetail['stack'],
                         'stack_start' => $stackDetail['stack_start'],
@@ -60,6 +63,7 @@ class ErrorLensHandler extends Handler
                     $errorLog = ErrorLog::create([
                         'method' => $request->getMethod(),
                         'url' => $request->url(),
+                        'status' => $exceptionStatusCode,
                         'request_data' => config('error-lens.security.storeRequestedData') == '1' ? $requestedData->all() : null,
                         'headers' => $transformData['headers'],
                         'message' => $transformData['message'],
@@ -105,25 +109,28 @@ class ErrorLensHandler extends Handler
     private function getStackDetail($error)
     {
         $data = [];
-        if ($error['file'] && $error['line'] && file_exists($error['file'])) {
-            $fileContent = file($error['file']);
-            $storeBeforeAfterErrorLines = 9;
+        if ($error && $error['file'] && $error['line'] && file_exists($error['file'])) {
+            $filePath = $error['file'];
+            $errorMessage = $error['message'];
+            // Pick the view from blade file instead of cache file 
+            if (str_contains($errorMessage, 'resources\views')) {
+                $filePath = preg_match('/\(View: (.+)\)/', $errorMessage, $matches) ? trim($matches[1]) : $filePath;
+            }
+            $fileContent = file($filePath);
+            array_unshift($fileContent, ""); // Instead of start the indexing 0, we start it from 1
+            $storeBeforeAfterErrorLines = 10;
             $totalLines = count($fileContent);
 
-            $start = ($error['line'] - $storeBeforeAfterErrorLines) <= 0 ? 0 : ($error['line'] - $storeBeforeAfterErrorLines);
+            $start = ($error['line'] - $storeBeforeAfterErrorLines) <= 0 ? 1 : ($error['line'] - $storeBeforeAfterErrorLines);
             $end = ($totalLines > ($start + ($storeBeforeAfterErrorLines * 2))) ? ($start + ($storeBeforeAfterErrorLines * 2)) : $totalLines;
 
-            for ($i = $start; $i < $end; $i++) {
-                if (isset($fileContent[$i])) {
-                    $data['stack'][] = $fileContent[$i];
-                }
-            }
+            $data['stack'] = array_slice($fileContent, $start, $end - $start, true);
         }
 
         return [
             'stack' => isset($data['stack']) ? implode('', $data['stack']) : null,
-            'stack_start' => isset($start) ? $start + 1 : null,
-            'stack_end' => isset($end) ? $end + 1 : null,
+            'stack_start' => isset($start) ? $start : null,
+            'stack_end' => isset($end) ? ($end - 1) : null,
         ];
     }
 
@@ -215,7 +222,9 @@ class ErrorLensHandler extends Handler
     private function getStatusCode($exception)
     {
         if ($exception) {
-            if (method_exists($exception, 'getStatusCode')) {
+            if (isset($exception->status)) {
+                return $exception->status;
+            } else if (method_exists($exception, 'getStatusCode')) {
                 return $exception->getStatusCode();
             } else {
                 return ($exception->getCode() !== 0) ? $exception->getCode() : 500;
@@ -239,6 +248,7 @@ class ErrorLensHandler extends Handler
             ) {
                 // If severity is set but the error code is added to the skip error code list, then it should be ignored.
                 $skipErrorCodes = array_map('trim', explode(',', $errorLogConfigs['error-lens.error_preferences.skipErrorCodes']));
+                $skipErrorCodes = array_unique(array_merge($this->defaultSkipErrorCodes, $skipErrorCodes));
                 $trackErrorOrNot = !in_array($exceptionStatusCode, $skipErrorCodes);
             }
         }
