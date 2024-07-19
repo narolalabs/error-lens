@@ -11,12 +11,12 @@
     </svg>
 </a>
 <div class="offcanvas-header flex-column">
-    <div class="full-log-view view-modal-error-header">
+    <div class="full-log-view view-modal-error-header text-break">
         <div>
             <h3 class="m-0" id="offcanvasRightLabel">
                 @if ($errorCode)
                     <span class="badge rounded-pill bg-danger p-2">{{ $errorCode }}</span>
-                @endif{{ $errorLog->message }}
+                @endif <span class="add-read-more show-less-content">{{ $errorLog->message }}</span>
             </h3>
             <small>
                 <small>
@@ -25,7 +25,7 @@
                 </small>
             </small>
         </div>
-        <div>
+        <div class="next-tab-open-icon">
             <a href="{{ route($fullPageViewRouteName, ['id' => $errorLog->id]) }}" target="_blank"
                 title="View in full page" class="ms-1">
                 <svg fill="#15a4b7" xmlns="http://www.w3.org/2000/svg" height="20" width="20"
@@ -99,7 +99,7 @@
                                     @foreach ($errorLog->request_data as $key => $value)
                                         <div class="mb-3 input_custom">
                                             <label class="fw-bold">{{ $key }}</label>
-                                            <span class="form-control">{{ $value }}</span>
+                                            <span class="form-control">{{ json_encode($value) }}</span>
                                         </div>
                                     @endforeach
                                 </div>
@@ -236,5 +236,7 @@
             })
         })
     }
+
+    AddReadMore();
 </script>
 <script src="{{ asset('vendor/error-lens/assets/js/languages_json.min.js') }}"></script>

@@ -5,6 +5,7 @@ namespace Narolalabs\ErrorLens\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Narolalabs\ErrorLens\Http\Requests\ArchiveErrorLogRequest;
+use Narolalabs\ErrorLens\Models\ArchivedErrorLog;
 use Narolalabs\ErrorLens\Models\ErrorLog;
 use Illuminate\Routing\Controller;
 use Narolalabs\ErrorLens\Traits\ErrorLisingConfigTrait;
@@ -100,11 +101,11 @@ class ErrorLogController extends Controller
         $errorDetail = collect($data['errorLog']->error)->first();
         $data['trace'] = $errorLog->trace;
         $data['stack'] = $data['errorLog']->stack;
-        $data['line'] = (($errorDetail && isset($errorDetail['line']))) ? $errorDetail['line'] : '';
+        $data['line'] = $errorLog['error_line'] ? $errorLog['error_line'] : ((($errorDetail && isset($errorDetail['line']))) ? $errorDetail['line'] : '');
         $data['stack_start'] = $data['errorLog']->stack_start;
         $data['stack_end'] = $data['errorLog']->stack_end;
 
-        $data['errorFile'] = (($errorDetail && isset($errorDetail['file']))) ? $errorDetail['file'] : '';
+        $data['errorFile'] = $errorLog['error_file'] ? $errorLog['error_file'] : ((($errorDetail && isset($errorDetail['file']))) ? $errorDetail['file'] : '');
         $data['errorCode'] = (($errorDetail && isset($errorDetail['code']))) ? $errorDetail['code'] : $errorLog['status'];
 
         // Pick the view from blade file instead of cache file 
@@ -129,6 +130,8 @@ class ErrorLogController extends Controller
     {
         try {
             ErrorLog::truncate();
+            ArchivedErrorLog::truncate();
+            Cache::flush();
             $request->session()->flash('status', 'All logs has been cleared.');
         } catch (\Exception $e) {
             $request->session()->flash('error', 'Something went wrong, while clearing the logs.');
@@ -154,12 +157,15 @@ class ErrorLogController extends Controller
             $newErrorLog->created_at = $errorLog->created_at;
             $newErrorLog->updated_at = $errorLog->updated_at;
             $newErrorLog->save();
-
+            
+            // Remove from cache
+            $existingData = $errorLog->only(['method','url','status','message','error_file','error_line','stack','stack_start','stack_end','email','ip_address','previous_url','browser','guard']);
+            $cacheKey = 'error_log_' . md5(json_encode($existingData));
+            Cache::forget($cacheKey);
+            
             //add following command if you need to remove records from error-log table
             $errorLog->delete();
         });
-
-        Cache::flush();
 
         if ($errorLogs) {
             $message = (count($errorLogIds) <= 1 ? 'The error log has' : 'Error logs have') . "  been archived successfully.";

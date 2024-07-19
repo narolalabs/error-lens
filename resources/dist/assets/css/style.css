@@ -429,3 +429,39 @@ div#rightside-panel {
 .bg-theme-gray {
     background: #ebebeb;
 }
+
+.next-tab-open-icon {
+    right: 3%;
+    position: absolute;
+    top: 4%;
+}
+
+.line-numbers.language-php {
+    padding-left: 60px;
+}
+
+
+/************** Start Hide Show ***************/
+.add-read-more.show-less-content .second-section,
+.add-read-more.show-less-content .read-less {
+   display: none;
+}
+
+.add-read-more.show-more-content .read-more {
+   display: none;
+}
+
+.add-read-more .read-more,
+.add-read-more .read-less {
+    font-weight: 500;
+    margin-left: 2px;
+    color: #15a4b7;
+    cursor: pointer
+}
+
+.add-read-more{
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+}
+/************** End Hide Show ***************/
