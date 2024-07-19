@@ -14,10 +14,12 @@ return new class extends Migration
         if (!Schema::hasTable('error_logs')) {
             Schema::create('error_logs', function (Blueprint $table) {
                 $table->uuid('id')->primary();
-                 $table->string('method');
+                $table->string('method');
                 $table->string('url', 191);
                 $table->integer('status')->default('0');
                 $table->text('message');
+                $table->text('error_file')->nullable();
+                $table->smallInteger('error_line')->nullable();
                 $table->json('error')->nullable();
                 $table->json('trace')->nullable();
                 $table->text('stack')->nullable();
@@ -47,10 +49,12 @@ return new class extends Migration
         if (!Schema::hasTable('error_logs_archived')) {
             Schema::create('error_logs_archived', function (Blueprint $table) {
                 $table->uuid('id')->primary();
-                 $table->string('method');
+                $table->string('method');
                 $table->string('url', 191);
                 $table->integer('status')->default('0');
                 $table->text('message');
+                $table->text('error_file')->nullable();
+                $table->smallInteger('error_line')->nullable();
                 $table->json('error')->nullable();
                 $table->json('trace')->nullable();
                 $table->text('stack')->nullable();
