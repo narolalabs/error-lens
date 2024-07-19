@@ -20,7 +20,7 @@
                 <h2>
                     @if ($errorCode)
                         <span class="badge rounded-pill bg-danger p-2">{{ $errorCode }}</span>
-                    @endif {{ $errorLog->message }}
+                    @endif <span class="add-read-more show-less-content">{{ $errorLog->message }}</span>
                 </h2>
                 <small>
                     <span class="fw-bold">Request URL:</span>

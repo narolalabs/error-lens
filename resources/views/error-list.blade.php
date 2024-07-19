@@ -27,7 +27,7 @@
                     <td width="30%">
                         {{ ($errorLog->method ? $errorLog->method . ': ' : '') . $errorLog->url }}
                     </td>
-                    <td>{{ $errorLog->message }}</td>
+                    <td><p class="add-read-more show-less-content">{{ $errorLog->message }}</p></td>
                     @if ($groupOccurrence)
                         <td class="text-center">
                             @if ($errorLog->repeated_logs_count < 1)  

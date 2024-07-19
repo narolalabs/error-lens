@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 class ErrorLensHandler extends Handler
 {
     private $defaultSkipErrorCodes = [400, 401, 403, 404, 406, 409, 413, 422];
+    private $storeBeforeAfterErrorLines = 10;
 
     public function render($request, $exception)
     {
@@ -36,13 +37,15 @@ class ErrorLensHandler extends Handler
 
                     $transformData = $this->transformErrorData($request, $exception, $exceptionStatusCode);
 
-                    $stackDetail = $this->getStackDetail(collect($transformData['error'])->last());
+                    $stackDetail = $this->getStackDetail(collect($transformData['error']), $exception);
 
                     $existingData = [
                         'method' => $request->getMethod(),
                         'url' => $request->url(),
                         'status' => $exceptionStatusCode,
                         'message' => $transformData['message'],
+                        'error_file' => isset($transformData['errorData']['file']) ? $transformData['errorData']['file'] : null,
+                        'error_line' => isset($transformData['errorData']['line']) ? $transformData['errorData']['line'] : null,
                         'stack' => $stackDetail['stack'],
                         'stack_start' => $stackDetail['stack_start'],
                         'stack_end' => $stackDetail['stack_end'],
@@ -67,6 +70,8 @@ class ErrorLensHandler extends Handler
                         'request_data' => config('error-lens.security.storeRequestedData') == '1' ? $requestedData->all() : null,
                         'headers' => $transformData['headers'],
                         'message' => $transformData['message'],
+                        'error_file' => isset($transformData['errorData']['file']) ? $transformData['errorData']['file'] : null,
+                        'error_line' => $stackDetail['line'],
                         'error' => $transformData['error'],
                         'trace' => $transformData['trace'],
                         'stack' => $stackDetail['stack'],
@@ -106,24 +111,61 @@ class ErrorLensHandler extends Handler
         return parent::render($request, $exception);
     }
 
-    private function getStackDetail($error)
+    private function extractUrls($string)
     {
+        // Regular expression to match URLs or file paths
+        $pattern = '/[A-Za-z]:\\\\[^\s)]+/i';
+        preg_match_all($pattern, $string, $matches);
+        return collect($matches[0]);
+    }
+
+    private function getStackDetail($errorCollection, $exception)
+    {
+        // $storeBeforeAfterErrorLines = 10;
+        $fileContent = '';
+        $error = $errorCollection->last();
+        $file = $exception->getFile() ?? ($error && $error['file'] ? $error['file'] : '');
+        $line = $exception->getLine() ?? ($error && $error['line'] ? $error['line'] : '');
+
         $data = [];
-        if ($error && $error['file'] && $error['line'] && file_exists($error['file'])) {
-            $filePath = $error['file'];
-            $errorMessage = $error['message'];
+        if ($error && $file && $line && file_exists($file)) {
+            $filePath = $file;
+            $errorMessage = isset($error['message']) ? $error['message'] : $exception->getMessage();
+
+            $trace = [];
+            $exceptionTrace = $exception;
+            do {
+                // $trace = array_merge($trace, $exceptionTrace->getTrace());
+                $trace = $exceptionTrace->getTrace();
+                $exceptionTrace = $exceptionTrace->getPrevious();
+            } while ($exceptionTrace);
+
             // Pick the view from blade file instead of cache file 
+            $viewLineNumber = 0;
             if (str_contains($errorMessage, 'resources\views')) {
-                $filePath = preg_match('/\(View: (.+)\)/', $errorMessage, $matches) ? trim($matches[1]) : $filePath;
+                $viewLineNumber = collect($trace)->filter(function ($item) {
+                    return isset($item['file']) && str_contains($item['file'], '\storage\framework\views');
+                })->pluck('line')->first();
+
+                if ($viewLineNumber) {
+                    $filePath = $this->extractUrls($errorMessage)->first();
+                    $line = $viewLineNumber;
+                }
             }
+
             $fileContent = file($filePath);
             array_unshift($fileContent, ""); // Instead of start the indexing 0, we start it from 1
-            $storeBeforeAfterErrorLines = 10;
             $totalLines = count($fileContent);
 
-            $start = ($error['line'] - $storeBeforeAfterErrorLines) <= 0 ? 1 : ($error['line'] - $storeBeforeAfterErrorLines);
-            $end = ($totalLines > ($start + ($storeBeforeAfterErrorLines * 2))) ? ($start + ($storeBeforeAfterErrorLines * 2)) : $totalLines;
+            $start = ($line - $this->storeBeforeAfterErrorLines) <= 0 ? 1 : ($line - $this->storeBeforeAfterErrorLines);
+            $end = ($totalLines > ($start + ($this->storeBeforeAfterErrorLines * 2))) ? ($start + ($this->storeBeforeAfterErrorLines * 2)) : $totalLines;
 
+            // If the first line is empty then PrismJS skip that line. make the first line non-empty.
+            while (isset($fileContent[$start]) && $this->containsNewline($fileContent[$start])) {
+                $start++;
+            }
+
+            // Get the code from file using start and end line number
             $data['stack'] = array_slice($fileContent, $start, $end - $start, true);
         }
 
@@ -131,7 +173,13 @@ class ErrorLensHandler extends Handler
             'stack' => isset($data['stack']) ? implode('', $data['stack']) : null,
             'stack_start' => isset($start) ? $start : null,
             'stack_end' => isset($end) ? ($end - 1) : null,
+            'line' => $line,
         ];
+    }
+
+    private function containsNewline($string)
+    {
+        return empty(trim($string));
     }
 
     /**
@@ -314,6 +362,7 @@ class ErrorLensHandler extends Handler
 
         $response['headers'] = $this->removeSensitiveHeaderInfo(request()->header());
         $response['trace'] = $this->isJson(json_encode($exception->getTrace())) ? $exception->getTrace() : ['trace' => $exception->getTraceAsString()];
+        $response['errorData'] = $error[0];
 
         return $response;
     }

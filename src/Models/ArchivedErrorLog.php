@@ -44,6 +44,8 @@ class ArchivedErrorLog extends Model
         'request_data',
         'headers',
         'message',
+        'error_file',
+        'error_line',
         'error',
         'trace',
         'stack',
