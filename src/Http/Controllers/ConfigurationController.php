@@ -29,7 +29,42 @@ class ConfigurationController extends Controller
             }
         }
 
-        return view('error-lens::config.config', compact('configurations'));
+        $repositions = $this->getCardPosition($configurations);
+
+        return view('error-lens::config.config', compact('configurations', 'repositions'));
+    }
+
+    /**
+     * Get the card positions
+     * @param array $configurations
+     * @return array
+     */
+    private function getCardPosition($configurations)
+    {
+        if (isset($configurations['configCart.repositions'])) {
+            try {
+                $repositionConfigs = $configurations['configCart.repositions'];
+                $repositionConfigs = json_decode($repositionConfigs, true);
+                $repositions = [];
+                foreach ($repositionConfigs as $key => $cardName) {
+                    $unGroupSections = explode('-', $key);
+                    $repositions[$unGroupSections[0]][$unGroupSections[1]] = $cardName;
+                }
+            } catch (\Throwable $e) {
+                $repositions = [];
+                $repositions['gp1'][0] = 'preferences';
+                $repositions['gp2'][0] = 'securityConfig';
+                $repositions['gp2'][1] = 'cacheClearConfig';
+            }
+
+        } else {
+            $repositions = [];
+            $repositions['gp1'][0] = 'preferences';
+            $repositions['gp2'][0] = 'securityConfig';
+            $repositions['gp2'][1] = 'cacheClearConfig';
+        }
+
+        return $repositions;
     }
 
     /**
@@ -45,11 +80,11 @@ class ConfigurationController extends Controller
             $data['logDeleteAfterDays'] = $data['logDeleteAfterDays'] ?? 1;
             $data['showRelatedErrorsOfDays'] = $data['showRelatedErrorsOfDays'] ?? 1;
             $data = collect($data)->only(['haventProductionEnv', 'customEnvName', 'autoDeleteLog', 'logDeleteAfterDays', 'showRelatedErrors', 'showRelatedErrorsOfDays', 'severityLevel', 'skipErrorCodes']);
-    
-            if ( ! isset($data['skipErrorCodes'])) {
+
+            if (!isset($data['skipErrorCodes'])) {
                 $data->put('skipErrorCodes', []);
             }
-            if ( ! isset($data['severityLevel'])) {
+            if (!isset($data['severityLevel'])) {
                 $data->put('severityLevel', []);
             }
 
@@ -103,7 +138,7 @@ class ConfigurationController extends Controller
     public function cache_clear(Request $request)
     {
         try {
-             // [DeveloperNote: while we set this line after cache clear. We getting null value in session.]
+            // [DeveloperNote: while we set this line after cache clear. We getting null value in session.]
             Session::flash('error-lens-success', 'The cache has been cleared successfully.');
             $redirect = redirect()->back();
             Cache::forget('error-lens');
@@ -114,5 +149,29 @@ class ConfigurationController extends Controller
             Session::flash('error-lens-error', 'There seems to be an issue! Please try again later.');
             return redirect()->back();
         }
+    }
+
+    public function store_config_reposition(Request $request)
+    {
+        $configReposition = $request->configReposition;
+
+        try {
+            $update = ErrorLogConfig::updateOrCreate(
+                ['key' => 'configCart.repositions'],
+                ['value' => base64_decode($configReposition)]
+            );
+
+            if ($update) {
+                Session::flash('error-lens-success', 'Card reposition settings saved successfully.');
+                $redirect = redirect()->back();
+                Cache::forget('error-lens');
+                \Artisan::call('cache:clear');
+                \Artisan::call('config:cache');
+                return $redirect;
+            }
+        } catch (\Throwable $e) {
+        }
+        Session::flash('error-lens-error', 'Failed to store the card repositions settings.');
+        $redirect = redirect()->back();
     }
 }

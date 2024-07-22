@@ -36,4 +36,5 @@ Route::group(['prefix' => 'error-lens', 'as' => 'error-lens.', 'middleware' => [
     Route::get('config', [ConfigurationController::class, 'config'])->name('config');
     Route::post('config', [ConfigurationController::class, 'config_store'])->name('config.store');
     Route::post('clear-cache', [ConfigurationController::class, 'cache_clear'])->name('config.cache-clear');
+    Route::post('store-config-reposition', [ConfigurationController::class, 'store_config_reposition'])->name('config.store-config-reposition');
 });
