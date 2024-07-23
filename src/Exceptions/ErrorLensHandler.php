@@ -15,6 +15,21 @@ use \Illuminate\Foundation\Application;
 class ErrorLensHandler extends Handler
 {
     private $defaultSkipErrorCodes = [400, 401, 403, 404, 406, 409, 413, 422];
+    private $defaultSkipErrorClasses = [
+        "\App\Exceptions\BadRequestException", 
+        "\Illuminate\Auth\AuthenticationException", 
+        "\Illuminate\Auth\Access\AuthorizationException", 
+        "\Symfony\Component\HttpKernel\Exception\NotFoundHttpException", 
+        "App\Exceptions\NotAcceptableException", 
+        "App\Exceptions\ConflictException",
+        "App\Exceptions\PayloadTooLargeException",
+        "\Illuminate\Validation\ValidationException",
+        "\Symfony\Component\HttpKernel\Exception\HttpException",
+        "\Illuminate\Database\Eloquent\ModelNotFoundException",
+        "\Illuminate\Session\TokenMismatchException",
+        "Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException",
+        "Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException"
+    ];
     private $storeBeforeAfterErrorLines = 10;
 
     public function render($request, $exception)
@@ -26,10 +41,16 @@ class ErrorLensHandler extends Handler
 
             $exceptionStatusCode = $this->getStatusCode($exception);
 
+            // Check by error code that error need to track or not 
             $trackErrorOrNot = $this->trackErrorOrNot($exceptionStatusCode, $errorLogConfigs);
 
+            // Check by instance name that error need to track or not 
+            $acceptErrorOrNot = collect($this->defaultSkipErrorClasses)->first(function ($value) use ($exception) {
+                return $exception instanceof $value;
+            }) ? false : true;
+
             // Log errors when the environment is production, debug mode is set to false, and error tracking is configured.
-            if ($this->isValidEnvironment() && !config('app.debug') && $trackErrorOrNot) {
+            if ($this->isValidEnvironment() && !config('app.debug') && $trackErrorOrNot && $acceptErrorOrNot) {
                 if ($exception) {
                     $guardName = $this->getGuardName();
 
