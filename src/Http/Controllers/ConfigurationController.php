@@ -8,6 +8,7 @@ use Narolalabs\ErrorLens\Http\Requests\SecurityConfigRequest;
 use Narolalabs\ErrorLens\Models\ErrorLogConfig;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
+use \Illuminate\Foundation\Application;
 
 class ConfigurationController extends Controller
 {
@@ -79,7 +80,7 @@ class ConfigurationController extends Controller
             $data = $request->all();
             $data['logDeleteAfterDays'] = $data['logDeleteAfterDays'] ?? 1;
             $data['showRelatedErrorsOfDays'] = $data['showRelatedErrorsOfDays'] ?? 1;
-            $data = collect($data)->only(['haventProductionEnv', 'customEnvName', 'autoDeleteLog', 'logDeleteAfterDays', 'showRelatedErrors', 'showRelatedErrorsOfDays', 'severityLevel', 'skipErrorCodes']);
+            $data = collect($data)->only(['haventProductionEnv', 'customEnvName', 'autoDeleteLog', 'logDeleteAfterDays', 'showRelatedErrors', 'showRelatedErrorsOfDays', 'severityLevel', 'skipErrorCodes', 'customHandlerClass', 'customHandlerMethod']);
 
             if (!isset($data['skipErrorCodes'])) {
                 $data->put('skipErrorCodes', []);
@@ -94,6 +95,22 @@ class ConfigurationController extends Controller
                     'value' => in_array($key, ['severityLevel', 'skipErrorCodes']) ? implode(',', array_filter(array_map('trim', $value))) : $value,
                 ];
             })->toArray();
+
+            if (isset($data['customHandlerClass']['value']) && isset($data['customHandlerMethod']['value']) && (int) Application::VERSION < 11) {
+                try {
+                    $customHandlerClass = $data['customHandlerClass']['value'];
+                    $customHandlerMethod = $data['customHandlerMethod']['value'];
+                    if (!class_exists($customHandlerClass)) {
+                        throw new \Exception("The class [$customHandlerClass] does not exist. Please provide a valid exception handling class.");
+                    }
+                    if (!method_exists($customHandlerClass, $customHandlerMethod)) {
+                        throw new \Exception("The method [$customHandlerMethod] is not exist in the class [$customHandlerClass]. Please provide valid method name.");
+                    }
+                } catch (\Throwable $e) {
+                    Session::flash('error-lens-error', $e->getMessage());
+                   return redirect()->back()->withInput();
+                }
+            }
 
             $update = ErrorLogConfig::upsert($data, ['key']);
             if ($update) {

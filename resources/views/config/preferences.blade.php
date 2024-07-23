@@ -12,7 +12,7 @@
         </div>
     </div>
     <div class="custom_table p-4">
-        <div class="table-responsive">
+        <div class="">
             <form action="{{ route('error-lens.config.store') }}" method="post">
                 @csrf
                 <input type="hidden" name="type" value="error_preferences">
@@ -83,6 +83,49 @@
                         </small>
                     </div>
                 </div>
+
+                @if ((int)\Illuminate\Foundation\Application::VERSION < 11)
+                <div class="mt-5 mb-2">
+                    <h5 class="fw-bold text-secondary d-inline">
+                        Extend Upto Exception Handler
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            class="bi bi-exclamation-circle-fill cursor-pointer" viewBox="0 0 16 16"
+                            data-bs-toggle="tooltip" data-bs-placement="top"
+                            title="When you want to perform your own exception handling, you can do so by following the recommended guidelines.">
+                            <path
+                                d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4m.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2" />
+                        </svg>
+                    </h5>
+                </div>
+                <div class="align-items-top">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="customHandlerClass">Handler Class with Namespace:</label>
+                                <input type="text" class="form-control" placeholder="\App\Exceptions\Handler"
+                                    {{ old('customHandlerClass', @$configurations['error_preferences.customHandlerClass']) }}
+                                    name="customHandlerClass"
+                                    value="{{ old('customHandlerClass', @$configurations['error_preferences.customHandlerClass'] ?? '\App\Exceptions\Handler') }}">
+                                <small class="text-danger">
+                                    {{ $errors->first('customHandlerClass') }}
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="customHandlerMethod">Method:</label>
+                                <input type="text" class="form-control" placeholder="render"
+                                    {{ old('customHandlerMethod', @$configurations['error_preferences.customHandlerMethod']) }}
+                                    name="customHandlerMethod"
+                                    value="{{ old('customHandlerMethod', @$configurations['error_preferences.customHandlerMethod'] ?? 'render') }}">
+                                <small class="text-danger">
+                                    {{ $errors->first('customHandlerMethod') }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
 
                 <div class="mt-5 mb-2">
                     <h5 class="fw-bold text-secondary d-inline">

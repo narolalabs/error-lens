@@ -10,6 +10,7 @@ use Narolalabs\ErrorLens\Models\ErrorLog;
 use Narolalabs\ErrorLens\Models\ErrorLogConfig;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
+use \Illuminate\Foundation\Application;
 
 class ErrorLensHandler extends Handler
 {
@@ -108,6 +109,17 @@ class ErrorLensHandler extends Handler
             // dd($e);
         }
 
+        if ((int) Application::VERSION < 11) {
+            try {
+                $customHandlerClass = config('error-lens.error_preferences.customHandlerClass');
+                $customHandlerMethod = config('error-lens.error_preferences.customHandlerMethod');
+    
+                return resolve($customHandlerClass)->$customHandlerMethod($request, $exception);
+            } catch (\Throwable $e) {
+                // dd($e);
+            }
+        }
+        
         return parent::render($request, $exception);
     }
 
