@@ -8,9 +8,9 @@
 
 ## Version Compatibility
 
- PHP      | 7.3, 7.4, 8.0, 8.1  |
-:---------|---------------------|
-Laravel   | 8.x, 9.x, 10.x      |
+ PHP      | 7.3, 7.4, 8.0, 8.1      |
+:---------|-------------------------|
+Laravel   | 8.x, 9.x, 10.x, 11x     |
 
 ## Installation
 
@@ -31,7 +31,7 @@ To safeguard against unauthorized access, you can set or reset the username and 
 php artisan error-lens:authentication
 ```
 
-Set the configuration as `APP_ENV=production` and `APP_DEBUG=false` and clear the cache by below command.
+Once you have completed the above steps, clear the cache using the following command.
 ```bash
 php artisan config:clear
 ```

@@ -71,7 +71,7 @@
             // Hide show for related errors elements
             hideShow('showRelatedErrors', 'showRelatedErrorsOfDays');
             // Hide show for custom environment setup
-            hideShow('haventProductionEnv', 'customEnvName');
+            // hideShow('haventProductionEnv', 'customEnvName');
 
             /** Start:: Select2 for multiple selections **/
             $(".confidentialFieldNamesInput, .notificationReceiverEmailInputs, .skipErrorCodesInput")
