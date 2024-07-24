@@ -47,6 +47,10 @@ class ErrorLensConfigurationSeeder extends Seeder
                 [
                     'key' => 'security.confidentialFieldNames',
                     'value' => 'email,password,pin,security,key,api,api_key,token,auth,authentication,authorization,pwd,pswd,pass,secret,access_code,private_key,secure_code,access_token,secure_key,passphrase,encrypted,authentication_key,secret_keyaccess_credentials,authentication_code'
+                ],
+                [
+                    'key' => 'error_preferences.enableDisableErrorTracking',
+                    'value' => '1'
                 ]
             ], 'key');
         } catch (\Throwable $e) {
