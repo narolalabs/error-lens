@@ -80,8 +80,9 @@ class ConfigurationController extends Controller
             $data = $request->all();
             $data['logDeleteAfterDays'] = $data['logDeleteAfterDays'] ?? 1;
             $data['showRelatedErrorsOfDays'] = $data['showRelatedErrorsOfDays'] ?? 1;
-            $data = collect($data)->only(['haventProductionEnv', 'customEnvName', 'autoDeleteLog', 'logDeleteAfterDays', 'showRelatedErrors', 'showRelatedErrorsOfDays', 'severityLevel', 'skipErrorCodes', 'customHandlerClass', 'customHandlerMethod']);
-
+            $data['enableDisableErrorTracking'] = isset($data['enableDisableErrorTracking']) ? 1 : 0;
+            $data = collect($data)->only(['haventProductionEnv', 'customEnvName', 'autoDeleteLog', 'logDeleteAfterDays', 'showRelatedErrors', 'showRelatedErrorsOfDays', 'severityLevel', 'skipErrorCodes', 'customHandlerClass', 'customHandlerMethod', 'enableDisableErrorTracking']);
+            
             if (!isset($data['skipErrorCodes'])) {
                 $data->put('skipErrorCodes', []);
             }

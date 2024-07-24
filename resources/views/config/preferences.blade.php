@@ -18,6 +18,33 @@
                 <input type="hidden" name="type" value="error_preferences">
                 <div class="mb-2">
                     <h5 class="fw-bold text-secondary d-inline">
+                        Keep Tracking
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            class="bi bi-exclamation-circle-fill cursor-pointer" viewBox="0 0 16 16"
+                            data-bs-toggle="tooltip" data-bs-placement="top"
+                            title="Errors are automatically deleted after the selected number of days.">
+                            <path
+                                d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4m.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2" />
+                        </svg>
+                    </h5>
+                </div>
+                <div class="d-flex justify-content-between  align-items-top">
+                    <div class="form-group mb-3">
+                        <div class="form-check form-switch">
+                            <label class="form-check-label" for="enableDisableErrorTracking">Enable/Disable error tracking</label>
+                            <input class="form-check-input" type="checkbox" role="switch" name="enableDisableErrorTracking"
+                                id="enableDisableErrorTracking"
+                                {{ old('enableDisableErrorTracking', @$configurations['error_preferences.enableDisableErrorTracking']) ? 'checked' : '' }}
+                                onchange="">
+                            <div class="invalid-feedback">
+                                {{ $errors->first('enableDisableErrorTracking') }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5 mb-2">
+                    <h5 class="fw-bold text-secondary d-inline">
                         Severity Level
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                             class="bi bi-exclamation-circle-fill cursor-pointer" viewBox="0 0 16 16"
@@ -46,7 +73,7 @@
                     </small>
                 </div>
 
-                <div class="mt-5 mb-2">
+                {{-- <div class="mt-5 mb-2">
                     <h5 class="fw-bold text-secondary d-inline">
                         Customize Environment
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -82,7 +109,7 @@
                             {{ $errors->first('customEnvName') }}
                         </small>
                     </div>
-                </div>
+                </div> --}}
 
                 @if ((int)\Illuminate\Foundation\Application::VERSION < 11)
                 <div class="mt-5 mb-2">

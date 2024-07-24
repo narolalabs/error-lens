@@ -50,7 +50,7 @@ class ErrorLensHandler extends Handler
             }) ? false : true;
 
             // Log errors when the environment is production, debug mode is set to false, and error tracking is configured.
-            if ($this->isValidEnvironment() && !config('app.debug') && $trackErrorOrNot && $acceptErrorOrNot) {
+            if ($trackErrorOrNot && $acceptErrorOrNot) {
                 if ($exception) {
                     $guardName = $this->getGuardName();
 
