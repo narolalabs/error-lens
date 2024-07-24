@@ -4,10 +4,11 @@ namespace Narolalabs\ErrorLens\Commands;
 
 use Illuminate\Console\Command;
 use \Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
 
 class InstallPackage extends Command
 {
-    public $signature = 'error-lens:install';
+    public $signature = 'error-lens:install {--fresh : Install fresh package by resetting the old error data}';
 
     public $description = 'Install the necessary things with single command';
 
@@ -17,6 +18,16 @@ class InstallPackage extends Command
 
         // Publish migration
         $this->call('vendor:publish', ['--tag' => 'error-lens-migrations']);
+
+        if ($this->option('fresh')) {
+            // Check if the table exists and drop it if it does
+            foreach (['error_logs', 'error_logs_archived', 'error_log_configs'] as $errorLensTableName) {
+                if (Schema::hasTable($errorLensTableName)) {
+                    Schema::drop($errorLensTableName);
+                    $this->info('Drop table' . $errorLensTableName);
+                }
+            }
+        }
 
         // Run migration
         if ($latestMigration = $this->getLatestMigration()) {
