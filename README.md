@@ -24,6 +24,7 @@ Install recommended migration, assets and seeder with single command. **(Require
 ```bash
 php artisan error-lens:install
 ```
+> **Note**: If you wish to reset the error log tables, you can use the `--fresh` flag. For example: `php artisan error-lens:install --fresh`.
 
 To safeguard against unauthorized access, you can set or reset the username and password for authentication. **(Highly recommended but optional)**
 ```bash
