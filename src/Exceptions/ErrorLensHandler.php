@@ -73,7 +73,7 @@ class ErrorLensHandler extends Handler
                         'stack_end' => $stackDetail['stack_end'],
                         'email' => $this->getUserEmail($guardName),
                         'ip_address' => $request->ip(),
-                        'previous_url' => url()->previous(),
+                        'previous_url' => $this->getPreviousUrl($request),
                         'browser' => $transformData['browser'] . " - v" . Agent::version($transformData['browser']),
                         'guard' => $guardName
                     ];
@@ -101,7 +101,7 @@ class ErrorLensHandler extends Handler
                         'stack_end' => $stackDetail['stack_end'],
                         'email' => $this->getUserEmail($guardName),
                         'ip_address' => $request->ip(),
-                        'previous_url' => url()->previous(),
+                        'previous_url' => $this->getPreviousUrl($request),
                         'browser' => $transformData['browser'] . " - v" . Agent::version($transformData['browser']),
                         'guard' => $guardName,
                         'repeated' => ($errorExist) ? $errorExist->id : null
@@ -393,7 +393,7 @@ class ErrorLensHandler extends Handler
             $exception->getMessage()
             : $exception->getStatusCode() . ' | Not found - ' . $request->fullUrl();
 
-        $response['headers'] = $this->removeSensitiveHeaderInfo(request()->header());
+        $response['headers'] = $this->removeSensitiveHeaderInfo($request->header());
         $response['trace'] = $this->isJson(json_encode($exception->getTrace())) ? $exception->getTrace() : ['trace' => $exception->getTraceAsString()];
         $response['errorData'] = $error[0];
 
@@ -406,6 +406,15 @@ class ErrorLensHandler extends Handler
             return $guardName && auth()->guard($guardName)->check() ? auth()->guard($guardName)->user()->email : null;
         } catch (\Throwable $e) {
             return null;
+        }
+    }
+
+    private function getPreviousUrl($request = null)
+    {
+        try {
+            return url()->previous();
+        } catch (\Throwable $e) {
+            return $request->session()->previousUrl();   
         }
     }
 }

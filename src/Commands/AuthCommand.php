@@ -36,7 +36,6 @@ class AuthCommand extends Command
             if ($storeCredentials[0]) {
                 // clear cache
                 $this->call('cache:clear');
-                $this->call('config:cache');
                 Cache::forget('error-lens');
     
                 // Information statement

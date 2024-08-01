@@ -119,7 +119,6 @@ class ConfigurationController extends Controller
                 $redirect = redirect()->back();
                 Cache::forget('error-lens');
                 \Artisan::call('cache:clear');
-                \Artisan::call('config:cache');
                 return $redirect;
             }
 
@@ -139,7 +138,6 @@ class ConfigurationController extends Controller
                 $redirect = redirect()->back();
                 Cache::forget('error-lens');
                 \Artisan::call('cache:clear');
-                \Artisan::call('config:cache');
                 return $redirect;
             }
         }
@@ -161,7 +159,6 @@ class ConfigurationController extends Controller
             $redirect = redirect()->back();
             Cache::forget('error-lens');
             \Artisan::call('cache:clear');
-            \Artisan::call('config:cache');
             return $redirect;
         } catch (\Throwable $e) {
             Session::flash('error-lens-error', 'There seems to be an issue! Please try again later.');
@@ -184,7 +181,6 @@ class ConfigurationController extends Controller
                 $redirect = redirect()->back();
                 Cache::forget('error-lens');
                 \Artisan::call('cache:clear');
-                \Artisan::call('config:cache');
                 return $redirect;
             }
         } catch (\Throwable $e) {
